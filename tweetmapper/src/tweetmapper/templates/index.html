@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<style>
+
+path {
+	fill: transparent;
+	stroke: #aaa;
+}
+</style>
+<body>
+<script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
+<script src="http://d3js.org/topojson.v1.min.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
+<script>
+
+(function() {
+
+		var width = 1100,
+	    height = 600,
+	    projection;
+
+
+		var svg = d3.select("body").append("svg")
+	    .attr("width", width)
+	    .attr("height", height);
+
+		d3.json("/static/data/us.json", function(error, us) {
+		  if (error) return console.error(error);
+		  console.log(us);
+
+		  var subunits = topojson.feature(us, us.objects.usasubunits);
+		  projection = d3.geo.albersUsa()
+		  	.scale(1100)
+		  	.translate([width/2, height/2]);
+
+		  var path = d3.geo.path()
+	    	.projection(projection);
+
+		  svg.append("path")
+	      	.datum(subunits)
+	      	.attr("d", path);
+
+	     update_points(); 	
+
+		});     
+
+		function add_point(point, fruit) {
+			svg.selectAll()
+			  	.data([point]).enter()
+			    .append("circle")
+			    .attr("cx", function(d) {
+			      return projection(d)[0];
+			    })
+			    .attr("cy", function(d) {
+			      return projection(d)[1];
+			    })
+			    .attr("r", "1px")
+			    .attr("fill", "red");
+		}
+
+		function update_points() {
+		    $.ajax({
+            type: "GET",
+            contentType: "application/json; charset=utf-8",
+            url: '/data',
+            dataType: 'json',
+            async: true,
+            cache: false,
+            success: function (data) {
+            	// write new points to map				
+            	if (data){
+            		// debugger;
+                    for (var loc in data) {
+                    	if (data.hasOwnProperty(loc)) {
+	                    	point = loc.split(",");
+				  			console.log(projection(point));
+					    	add_point(point, 'apple');
+				    	}
+				    }					    
+               }
+            },
+            error: function(xhr, textStatus, errorThrown){
+               console.log(textStatus + ', ' + errorThrown);
+          	}
+	    	})
+		}
+
+	})(jQuery);
+
+
+</script>
+</body>
+</html>
