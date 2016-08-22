@@ -28,7 +28,7 @@ path {
 		  if (error) return console.error(error);
 		  console.log(us);
 
-		  var subunits = topojson.feature(us, us.objects.usasubunits);
+		  var land = topojson.feature(us, us.objects.land);
 		  projection = d3.geo.albersUsa()
 		  	.scale(1100)
 		  	.translate([width/2, height/2]);
@@ -37,14 +37,14 @@ path {
 	    	.projection(projection);
 
 		  svg.append("path")
-	      	.datum(subunits)
+	      	.datum(land)
 	      	.attr("d", path);
 
 	     update_points(); 	
 
 		});     
 
-		function add_point(point, fruit) {
+		function add_point(point, text) {
 			svg.selectAll()
 			  	.data([point]).enter()
 			    .append("circle")
@@ -54,7 +54,7 @@ path {
 			    .attr("cy", function(d) {
 			      return projection(d)[1];
 			    })
-			    .attr("r", "1px")
+			    .attr("r", "8px")
 			    .attr("fill", "red");
 		}
 
@@ -70,10 +70,12 @@ path {
             	// write new points to map				
             	if (data){
             		// debugger;
+            		// remove old points
+            		svg.selectAll("circle").remove();
                     for (var loc in data) {
                     	if (data.hasOwnProperty(loc)) {
 	                    	point = loc.split(",");
-				  			console.log(projection(point));
+				  			// console.log(projection(point));
 					    	add_point(point, 'apple');
 				    	}
 				    }					    
@@ -84,6 +86,8 @@ path {
           	}
 	    	})
 		}
+
+		var intv_id = setInterval(update_points, 5 * 1000);
 
 	})(jQuery);
 

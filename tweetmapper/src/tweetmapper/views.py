@@ -11,7 +11,7 @@ def index():
 	return render_template("index.html")
 
 @app.route("/data")
-def get_latest_fruit_data():
+def get_latest_subject_data():
 	"""
 	return stored JSON of all locations and the fruits the people there are
 	tweeting about
@@ -19,5 +19,5 @@ def get_latest_fruit_data():
 	# start with stored dummy data
 	# with open("tweetmapper/src/tweetmapper/tests/data/sampletwitter.json", "r") as json_data:
 	# 	return json_data.read()
-	return redis_store.get('fruit_data')
+	return redis_store.get('subject_data')
 

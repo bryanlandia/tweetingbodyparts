@@ -3,10 +3,12 @@ from datetime import timedelta
 CELERY_BROKER_URL = 'redis://localhost'
 CELERY_RESULT_BACKEND = 'redis://localhost'
 CELERYBEAT_SCHEDULE = {
-    'update-fruit-counts-every-30-seconds': {
-    'task': 'tasks.update_fruit_counts',
+    'update-subject-counts-every-30-seconds': {
+    'task': 'tasks.update_subject_counts',
     'schedule': timedelta(seconds=30),
 	},
 }
-MAX_LOCATIONS = 25
+MAX_LOCATIONS = 15
 MAX_TWEETS_PER_SEARCH = 100
+TWITTER_SEARCH_LATLNG_INTERVAL = 2
+TWITTER_MAX_TERMS_PER_SEARCH = 30

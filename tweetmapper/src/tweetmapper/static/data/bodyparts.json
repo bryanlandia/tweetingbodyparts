@@ -1,0 +1,32 @@
+{
+	"subjects": {
+		"eye": ["eye"],
+		"nose": ["nose"],
+		"mouth": ["mouth", "lip"],
+		"tooth": ["tooth", "teeth"],
+		"tongue": ["tongue"],
+		"ear": ["ear"],
+		"hair": ["hair"],
+		"neck": ["neck"],
+		"shoulder": ["shoulder"],
+		"breast": ["breast", "tit","tits", "boob", "nipple"],
+		"belly  button": ["'belly button'"],
+		"stomach": ["stomach "],
+		"vagina": ["vagina", "pussy", "cunt "],
+		"penis": ["penis", "dick", "cock "],
+		"testicles": ["balls", "testicle", "nuts", "ballz"],
+		"butt":  ["ass", "butt", "glutes "],
+		"asshole":  ["asshole", "sphincter", "butthole"],
+		"leg": ["leg", "thigh", "calf"],
+		"knee": ["knee"],
+		"foot": ["foot", "feet "],
+		"toe":  ["toe"],
+		"arm": ["arm", "arms "],
+		"hand": ["hand", "hands "],
+		"finger": ["finger"],
+		"thumb": ["thumb"],
+		"liver": ["liver"],
+		"brain":  ["brain"],
+		"lung": ["lung"]
+	}
+}
