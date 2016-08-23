@@ -9,8 +9,6 @@ app.config.from_envvar('TWEETMAPPER_SETTINGS')
 
 redis_store = FlaskRedis(app)
 
-from tweetmapper import views
-
 
 states_to_do = [
     "AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DC", "DE", "FL", "GA", 
@@ -24,6 +22,5 @@ if redis_store.get('states_to_do') is None:
 	redis_store.set('states_to_do', ",".join(states_to_do))
 
 
-# import fiona
-# with fiona.open(app.config['STATES_SHAPE_FILE_PATH']) as collection:
-# 	pass
+# this has to come last
+from tweetmapper import views

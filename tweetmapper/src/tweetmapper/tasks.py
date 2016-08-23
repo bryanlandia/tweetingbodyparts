@@ -1,37 +1,30 @@
-from tweetmapper import app, redis_store
-from flask.ext.celery import Celery
-
 import base64
 import copy 
 import re
-import requests
 import math
+import random
+import time
+from urllib import quote_plus
+
+import requests
 import json
 import fiona
 from shapely import geometry
 import twitter
-from urllib import quote_plus
+
 from celery.contrib import rdb as pdb
+from flask.ext.celery import Celery
+
+from tweetmapper import app, redis_store
+
 
 celery = Celery(app)
 
 
-# for fruit search don't want Apple Computer-related results
-APPLE_COMPUTER_RELATED_EXCLUDE = [
-"'Apple Watch'", 
-# "'Apple computer'", 
-# "'Apple computers'", 
-# "'Apple laptop'", 
-# "'Apple laptops'", 
-# "'Apple macbook'", 
-# "'Apple macboos'", 
-"'Apple music'", 
-"'Apple tv'", 
-"'apple website'", 
-# "'apple mail'", 
-# "'apple ceo'", 
-# "'apple stock'", 
-]
+class TwitterRateError(twitter.TwitterError):
+
+    def __init__(self, status):
+        self.status = status
 
 
 @celery.task()
@@ -44,8 +37,11 @@ def update_subject_counts():
     # don't do anything if we are rate-limited by Twitter
     # pdb.set_trace()
 
-    if not do_twitter_update():
-        return "waiting for Twitter ratelimit reset"
+    try:
+        check_do_twitter_update()
+    except TwitterRateError as e:
+        reset = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(e.status.reset))
+        return "waiting for Twitter ratelimit reset at {}".format(reset)
 
     datapath = app.config['STATES_SHAPE_FILE_PATH']
     # datapath = "/opt/sfpc/tweetsaboutfruit/data/states_21basic/states.shp"
@@ -66,7 +62,7 @@ def update_subject_counts():
     from_store = json.loads(redis_store.get('subject_data'))
     if from_store is None:
         from_store = {}
-    
+
     new = json.loads(subject_tweets_json)
     from_store.update(new)
     merged = json.dumps(from_store)
@@ -75,7 +71,7 @@ def update_subject_counts():
     redis_store.set('states_to_do', ','.join(states_to_do))
 
 
-def do_twitter_update():
+def check_do_twitter_update():
     subjects = get_subjects_to_search()
     subjects_len = len([word for word in [subj for subj in subjects.keys()]])
     max_terms = app.config["TWITTER_MAX_TERMS_PER_SEARCH"]
@@ -86,7 +82,7 @@ def do_twitter_update():
     api = get_twitter_API()
     rlstatus = api.CheckRateLimit("https://api.twitter.com/1.1/search/tweets.json")
     if rlstatus.remaining < queries_by_task_run:
-        return False
+        raise TwitterRateError(rlstatus) 
     return True
 
 
@@ -149,6 +145,10 @@ def get_locations(datapath, state):
         y = miny
 
         step =  app.config["TWITTER_SEARCH_LATLNG_INTERVAL"]
+        random.seed()
+        rnd = random.random()
+        step += rnd < 0.5 and -0.25*rnd or 0.25*(rnd/2)
+
         while y < maxy:
             while x < maxx:
                 p = geometry.Point(x,y)

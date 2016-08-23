@@ -8,6 +8,9 @@ path {
 }
 </style>
 <body>
+<h1>Americans tweeting about their bits</h1>
+
+<link rel="stylesheet" type="text/css" href="/static/css/style.css" />
 <script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
 <script src="http://d3js.org/topojson.v1.min.js"></script>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
@@ -40,13 +43,15 @@ path {
 	      	.datum(land)
 	      	.attr("d", path);
 
-	     update_points(); 	
+	     update_points();
 
 		});     
 
-		function add_point(point, text) {
-			svg.selectAll()
-			  	.data([point]).enter()
+		function add_points(points, text) {
+			// add point if it doesn't already exist
+			debugger;
+			var join = svg.selectAll('circle.bpart').data(points);
+			join.enter()
 			    .append("circle")
 			    .attr("cx", function(d) {
 			      return projection(d)[0];
@@ -54,8 +59,9 @@ path {
 			    .attr("cy", function(d) {
 			      return projection(d)[1];
 			    })
-			    .attr("r", "8px")
-			    .attr("fill", "red");
+			    .attr("class", "bpart")
+			    .attr("r", "8px");
+			join.exit().remove(); // delete if not present in data
 		}
 
 		function update_points() {
@@ -68,17 +74,16 @@ path {
             cache: false,
             success: function (data) {
             	// write new points to map				
+            	// debugger
             	if (data){
-            		// debugger;
-            		// remove old points
-            		svg.selectAll("circle").remove();
+            		var points = new Array();
                     for (var loc in data) {
                     	if (data.hasOwnProperty(loc)) {
 	                    	point = loc.split(",");
-				  			// console.log(projection(point));
-					    	add_point(point, 'apple');
-				    	}
-				    }					    
+	                    	points.push(point);
+					   	}
+				    }
+				    add_points(points);					    
                }
             },
             error: function(xhr, textStatus, errorThrown){

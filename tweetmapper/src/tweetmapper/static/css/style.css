@@ -1,0 +1,12 @@
+@keyframes wiggle {
+  0% { transform: translateX(0) translateY(0); }
+  25% { transform: translateX(0.5px) translateY(0.5px); }
+  50% { transform: translateX(1px) translateY(1px); }
+  75% { transform: translateX(0.5px) translateY(0.5px); }
+  100% { transform: translateX(0) translateY(0); }
+}
+
+.bpart {
+	animation: wiggle 1s ease infinite;
+	fill: #ddd;
+}
