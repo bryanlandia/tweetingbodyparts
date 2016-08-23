@@ -56,12 +56,22 @@ path {
 			return d.pt;
 		}
 
+		function changed_subject_only(d, el) {			
+			if (el.__old_data__ == undefined) return null; //new els won't have
+			// debugger;
+			return (d.subject != el.__old_data__.subject) ? el: null;
+		}
+
 		function add_points(points) {
 			// add point if it doesn't already exist
 			// key on lat/long only, not subject
 			// key on lat/long within random variance of step
-			var join = svg.selectAll('circle.bpart').data(points, key_on_lat_lng_w_variance);
-			join.enter()
+			var join = svg.selectAll('circle.bpart')
+				.property("__old_data__", function(d){ return d;})
+				.data(points, key_on_lat_lng_w_variance)
+			    ;	
+			join.attr("part", function(d){return d.subject});
+			join.enter()				
 			    .append("circle")
 			    .attr("cx", function(d) {
 			      return projection(d.pt)[0];
@@ -71,8 +81,26 @@ path {
 			    })
 			    .attr("class", "bpart")
 			    .attr("r", "8px")
-			    .attr("part", function(d){return d.subject});
-			join.exit().remove(); // delete if not present in data
+			    .style("opacity", 0)
+			    .transition()
+			    	.duration(function(d){return Math.random()*d.pt[1]*2000})
+			    	.style("opacity", 0.7)
+			    ;
+			join.exit()
+				.transition()
+					.duration(1000)
+					.style("opacity", 0)
+					.remove(); // fade out and delete if not present in data
+
+			// in/out opacity transition on only those w/ chanaged subjects
+			join.filter(function(d, i){return changed_subject_only(d, this)})
+				.transition()					
+					.duration(1000)
+			    	.style("opacity", 0)
+	    		.transition()
+			    	.duration(1000)
+			    	.style("opacity", 0.7)
+			;    	
 		}
 
 		function update_points() {

@@ -9,5 +9,4 @@
 .bpart {
 	animation: wiggle 1s ease infinite;
 	fill: #ddd;
-	opacity: 0.7;
 }
