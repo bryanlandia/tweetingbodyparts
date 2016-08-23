@@ -145,9 +145,9 @@ def get_locations(datapath, state):
         y = miny
 
         step =  app.config["TWITTER_SEARCH_LATLNG_INTERVAL"]
-        random.seed()
-        rnd = random.random()
-        step += rnd < 0.5 and -0.25*rnd or 0.25*(rnd/2)
+        # random.seed()
+        # rnd = random.random()
+        # step += rnd < 0.5 and -0.25*rnd or 0.25*(rnd/2)
 
         while y < maxy:
             while x < maxx:

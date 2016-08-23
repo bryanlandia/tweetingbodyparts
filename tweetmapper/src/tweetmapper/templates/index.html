@@ -8,7 +8,7 @@ path {
 }
 </style>
 <body>
-<h1>Americans tweeting about their bits</h1>
+<!-- <h1>Americans tweeting about their bits</h1> -->
 
 <link rel="stylesheet" type="text/css" href="/static/css/style.css" />
 <script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
@@ -45,22 +45,33 @@ path {
 
 	     update_points();
 
-		});     
+		});
 
-		function add_points(points, text) {
+		function key_on_lat_lng_w_variance(d){
+			/* for now we aren't really doing this
+			   but the idea is to try to return a range of
+			   points for joining... not sure if that 
+			   would work
+			*/
+			return d.pt;
+		}
+
+		function add_points(points) {
 			// add point if it doesn't already exist
-			debugger;
-			var join = svg.selectAll('circle.bpart').data(points);
+			// key on lat/long only, not subject
+			// key on lat/long within random variance of step
+			var join = svg.selectAll('circle.bpart').data(points, key_on_lat_lng_w_variance);
 			join.enter()
 			    .append("circle")
 			    .attr("cx", function(d) {
-			      return projection(d)[0];
+			      return projection(d.pt)[0];
 			    })
 			    .attr("cy", function(d) {
-			      return projection(d)[1];
+			      return projection(d.pt)[1];
 			    })
 			    .attr("class", "bpart")
-			    .attr("r", "8px");
+			    .attr("r", "8px")
+			    .attr("part", function(d){return d.subject});
 			join.exit().remove(); // delete if not present in data
 		}
 
@@ -79,7 +90,7 @@ path {
             		var points = new Array();
                     for (var loc in data) {
                     	if (data.hasOwnProperty(loc)) {
-	                    	point = loc.split(",");
+	                    	point = {'pt': loc.split(","), 'subject':data[loc]};
 	                    	points.push(point);
 					   	}
 				    }
