@@ -37,36 +37,36 @@ def update_subject_counts():
     # don't do anything if we are rate-limited by Twitter
     # pdb.set_trace()
 
+    # pdb.set_trace()
     try:
         check_do_twitter_update()
     except TwitterRateError as e:
         reset = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(e.status.reset))
-        return "waiting for Twitter ratelimit reset at {}".format(reset)
+        return "Used {} API requests.  Waiting for Twitter ratelimit reset at {}".format(e.status.limit, reset)
 
     datapath = app.config['STATES_SHAPE_FILE_PATH']
-    # datapath = "/opt/sfpc/tweetsaboutfruit/data/states_21basic/states.shp"
     
     states_to_do = redis_store.get('states_to_do').split(',')
     state = states_to_do.pop()
+    print "getting locations for state {}".format(state)
 
     locations = get_locations(datapath, state)
     try:
         subject_tweets_json = get_subject_tweets(locations)
-    except twitter.error.TwitterError:
+    except twitter.error.TwitterError, e:
         states_to_do.append(state)
         redis_store.set('states_to_do', ','.join(states_to_do))
-        return "Hit TwitterError.  Probably hit a RateLimit mid-run.  Wait and try again..."
+        return "Hit TwitterError {}.  Probably hit a RateLimit mid-run.  Wait and try again...".format(str(e))
         
     # overwrite old json object properties with new, add other new
-    # pdb.set_trace()
     from_store = json.loads(redis_store.get('subject_data'))
     if from_store is None:
         from_store = {}
 
     new = json.loads(subject_tweets_json)
     from_store.update(new)
-    merged = json.dumps(from_store)
-    redis_store.set('subject_data', merged)
+    merged = from_store
+    redis_store.set('subject_data', json.dumps(merged))
     states_to_do.insert(0, state)
     redis_store.set('states_to_do', ','.join(states_to_do))
 
@@ -80,7 +80,11 @@ def check_do_twitter_update():
     queries_by_task_run = app.config["MAX_LOCATIONS"] * num_queries_for_subjects
 
     api = get_twitter_API()
+
+    # TO DO also check the ratelimit for checking the ratelimit check endpoint
+    # so we don't go over API limit on that too!
     rlstatus = api.CheckRateLimit("https://api.twitter.com/1.1/search/tweets.json")
+    print "Twitter API limit:{}, remaining:{}".format(rlstatus.limit, rlstatus.remaining)
     if rlstatus.remaining < queries_by_task_run:
         raise TwitterRateError(rlstatus) 
     return True
@@ -157,7 +161,6 @@ def get_locations(datapath, state):
                 x += step
             x = minx
             y+= step
-    print len(locations)
     return locations
 
 
@@ -232,6 +235,7 @@ def get_subject_tweets(locations):
                     except (ValueError, IndexError):
                         pass
         except twitter.error.TwitterError:
+            # pdb.set_trace()
             raise 
 
         # print fruit_str+"\n\n-------------"
