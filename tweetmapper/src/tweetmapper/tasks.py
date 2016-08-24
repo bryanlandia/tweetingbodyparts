@@ -4,8 +4,8 @@ import re
 import math
 import random
 import time
-from urllib import quote_plus
 
+from urllib import quote_plus
 import requests
 import json
 import fiona
@@ -100,26 +100,12 @@ def get_twitter_API():
     with open(app.config['TWITTER_AUTH_FILE_PATH'], 'r') as json_auth:
         auth = json.load(json_auth)
 
-    # we use application-only auth to get higher rate limit, so 
-    # first get a bearer token (gives 450 requests per 15 min)
-    key = quote_plus(auth['consumer_key'])
-    secret = quote_plus(auth['consumer_secret'])
-    bearer_token = base64.b64encode('{}:{}'.format(key, secret) )
-
-    post_headers = {
-        'Authorization': 'Basic '+bearer_token,
-        'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8'
-    }
-    res = requests.post(url="https://api.twitter.com/oauth2/token", 
-                        data={'grant_type':'client_credentials'}, 
-                        headers=post_headers)
-    bearer_creds = res.json()
-
     api = twitter.Api(consumer_key=auth['consumer_key'],
                       consumer_secret=auth['consumer_secret'],
                       access_token_key=auth['access_token_key'],
                       access_token_secret=auth['access_token_secret'],
-                      request_headers={'Authorization': 'Bearer {}'.format(bearer_creds['access_token'])})
+                      application_only_auth=True)
+    
     return api
 
 
