@@ -64,6 +64,7 @@
 				.data(points, key_on_lat_lng_w_variance)
 			    ;	
 			join.attr("part", function(d){return d.subject});
+			join.attr("tweet", function(d){return d.tweet});
 			join.enter()				
 			    .append("svg:image")
 			    .attr("xlink:href", function(d) {
@@ -115,7 +116,8 @@
             		var points = new Array();
                     for (var loc in data) {
                     	if (data.hasOwnProperty(loc)) {
-	                    	point = {'pt': loc.split(","), 'subject':data[loc]};
+                    		debugger;
+	                    	point = {'pt': loc.split(","), 'subject':data[loc].subj, "tweet":data[loc].tweet};
 	                    	points.push(point);
 					   	}
 				    }

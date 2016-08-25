@@ -35,9 +35,7 @@ def update_subject_counts():
     Twitter API limit is 450 requests every 15 minutes
     """
     # don't do anything if we are rate-limited by Twitter
-    # pdb.set_trace()
 
-    # pdb.set_trace()
     try:
         check_do_twitter_update()
     except TwitterRateError as e:
@@ -131,7 +129,6 @@ def get_locations(datapath, state):
         # In this case, we'll assume the shapefile only has one record/layer (e.g., the shapefile
         # is just for the borders of a single country, etc.).
         rec = collection.next()
-        # pdb.set_trace()
         while True:
             if rec['properties']['STATE_ABBR'] == state:
                 break
@@ -192,7 +189,6 @@ def get_subject_tweets(locations):
             search_strings[int(math.floor(search_word_count / max_terms))] += subjects_str
             search_word_count += 1
             # subjects_str += quote_plus(' -'+' -'.join(APPLE_COMPUTER_RELATED_EXCLUDE).replace('\'','"'))
-    # pdb.set_trace()
     
     api = get_twitter_API()
     loc_subjects = {}
@@ -202,31 +198,31 @@ def get_subject_tweets(locations):
         # qry="q=pear%20&geocode={},{},10mi&result_type=recent&count=100".format(loc['lat'],loc['lng'])
         try:
             for search_str in search_strings:
+                if search_str == '':
+                    break
+                if search_str.find('+OR+') == 0:  # make sure we don't start with an OR
+                    search_str=search_str[4:]
+
                 qry ="q={}&geocode={},{},50mi&result_type=recent&count={}".format(
                 search_str, loc['lat'],loc['lng'], app.config['MAX_TWEETS_PER_SEARCH']).replace('++','+')
                 results = api.GetSearch(raw_query=qry)
                 # print "{},{} results:{}\n\n".format(loc['lat'],loc['lng'],results)
                 for tweet in results:
                     try:
-                        text = tweet.text.encode('ascii', 'ignore')
+                        text = ' '+tweet.text.encode('ascii', 'ignore')+' '  # pre-/append a space for word searching
                         text = re.sub(r'https?:\/\/.*', '', text, flags=re.MULTILINE)
                         if 'retweet' in text.lower() or 'rt @' in text.lower():
                             continue
                         # find where the subject is mentioned...
+                        # it may just be found in a word part in which case we reject this tweet
+                        # so we'll prepend and append a space 
                         i = 0
-                        while text.lower().find(subjects_list_exploded[i].lower()) == -1:
-                            i +=1
-
-                        # this gets the character index in text of the fruit word
-                        # index = text.lower().find(subjects_list[i].lower())
-
-                        # # grab 10 words before, 10 after fruit word
-                        # before = text[:index]
-                        # after = text[index:]
-                        # text = before.split(' ')[-10:] + after.split(' ')[:5]
-                        # text = ' '.join(text)
-                        # if fruit_str.find(text) == -1:
-                        #   fruit_str += " " +text
+                        try:
+                            while text.lower().find(' '+subjects_list_exploded[i].lower()+' ') == -1:
+                                i +=1
+                        except IndexError:
+                            # we didn't find the term                            
+                            continue
 
                         # which subject is it?
                         word_found = subjects_list_exploded[i]
@@ -240,14 +236,16 @@ def get_subject_tweets(locations):
                     except (ValueError, IndexError):
                         pass
         except twitter.error.TwitterError:
-            # pdb.set_trace()
             raise 
 
-        # print fruit_str+"\n\n-------------"
+        if not len(subjects_tweets.keys()):
+            # didn't find any matches!
+            continue
+
         most_subject = max(subjects_count.iterkeys(), key=(lambda key: subjects_count[key]))
         # print "{},{}:{}\n".format(loc['lat'],loc['lng'],most_subject)
-        # loc_subjects["{},{}".format(loc['lng'],loc['lat'])] = {"subj":most_subject, "tweet":tweet_txt}
-        loc_subjects["{},{}".format(loc['lng'],loc['lat'])] = most_subject
+        loc_subjects["{},{}".format(loc['lng'],loc['lat'])] = {"subj":most_subject, "tweet":subjects_tweets[most_subject]}
+        # loc_subjects["{},{}".format(loc['lng'],loc['lat'])] = most_subject
     return json.dumps(loc_subjects)
 
 
