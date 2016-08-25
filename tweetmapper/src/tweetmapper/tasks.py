@@ -79,6 +79,13 @@ def check_do_twitter_update():
     num_queries_for_subjects = int(math.ceil(num_queries_for_subjects))
     queries_by_task_run = app.config["MAX_LOCATIONS"] * num_queries_for_subjects
 
+
+    # check if we might even have run out of requests to check our RateLimit
+    check_rate_api = get_twitter_API(application_only=False, sleep_on_rate_limit=True)  # use user auth for this one 
+    rlstatusstatus = check_rate_api.CheckRateLimit("https://api.twitter.com/1.1/application/rate_limit_status.json")
+    if rlstatusstatus.remaining < 1:
+        return False
+
     api = get_twitter_API()
 
     # TO DO also check the ratelimit for checking the ratelimit check endpoint
@@ -96,7 +103,7 @@ def get_subjects_to_search():
         return subjects
     
 
-def get_twitter_API():
+def get_twitter_API(application_only=True, sleep_on_rate_limit=False):
     with open(app.config['TWITTER_AUTH_FILE_PATH'], 'r') as json_auth:
         auth = json.load(json_auth)
 
@@ -104,7 +111,8 @@ def get_twitter_API():
                       consumer_secret=auth['consumer_secret'],
                       access_token_key=auth['access_token_key'],
                       access_token_secret=auth['access_token_secret'],
-                      application_only_auth=True)
+                      application_only_auth=application_only,
+                      sleep_on_rate_limit=sleep_on_rate_limit)
     
     return api
 
@@ -134,19 +142,28 @@ def get_locations(datapath, state):
         x = minx 
         y = miny
 
-        step =  app.config["TWITTER_SEARCH_LATLNG_INTERVAL"]
-        # random.seed()
-        # rnd = random.random()
-        # step += rnd < 0.5 and -0.25*rnd or 0.25*(rnd/2)
+        default_step = app.config["TWITTER_SEARCH_LATLNG_INTERVAL"]    
+        with open('static/data/stephints.json', 'r') as sleep_hints:
+            hints = json.load(sleep_hints)
+            try:
+                step_lat = hints[state]['steplat']
+                step_lng = hints[state]['steplng']
+                step_initial = hints[state].get('step_initial', [0,0])
+            except KeyError:
+                step_lat = step_lng = default_step
+                step_initial = [0,0]
+
+        y+= step_initial[0]
+        x+= step_initial[1]
 
         while y < maxy:
             while x < maxx:
                 p = geometry.Point(x,y)
                 if shape.contains(p):
                     locations.append({'lat':y, 'lng':x})
-                x += step
+                x += step_lng
             x = minx
-            y+= step
+            y+= step_lat
     return locations
 
 
@@ -163,6 +180,7 @@ def get_subject_tweets(locations):
     max_terms = app.config["TWITTER_MAX_TERMS_PER_SEARCH"]
     search_strings = ['', ]
     subjects_list = subjects.keys()
+    subjects_tweets = {}
     subjects_list_exploded = explode_subjects(subjects)
     for subject in subjects_list:
         subj, words = subject, subjects[subject]
@@ -215,6 +233,7 @@ def get_subject_tweets(locations):
                         for subj in subjects:
                             if word_found in subjects[subj]:
                                 subjects_count[subj] +=1
+                                subjects_tweets[subj] = text
                                 break
                         # print "{},{}\n------------\n{}".format(loc['lat'],loc['lng'],subjects_count)
 
@@ -227,6 +246,7 @@ def get_subject_tweets(locations):
         # print fruit_str+"\n\n-------------"
         most_subject = max(subjects_count.iterkeys(), key=(lambda key: subjects_count[key]))
         # print "{},{}:{}\n".format(loc['lat'],loc['lng'],most_subject)
+        # loc_subjects["{},{}".format(loc['lng'],loc['lat'])] = {"subj":most_subject, "tweet":tweet_txt}
         loc_subjects["{},{}".format(loc['lng'],loc['lat'])] = most_subject
     return json.dumps(loc_subjects)
 

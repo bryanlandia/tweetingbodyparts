@@ -1,12 +1,5 @@
 <!DOCTYPE html>
 <meta charset="utf-8">
-<style>
-
-path {
-	fill: transparent;
-	stroke: #aaa;
-}
-</style>
 <body>
 <!-- <h1>Americans tweeting about their bits</h1> -->
 
@@ -66,24 +59,28 @@ path {
 			// add point if it doesn't already exist
 			// key on lat/long only, not subject
 			// key on lat/long within random variance of step
-			var join = svg.selectAll('circle.bpart')
+			var join = svg.selectAll('image.bpart')
 				.property("__old_data__", function(d){ return d;})
 				.data(points, key_on_lat_lng_w_variance)
 			    ;	
 			join.attr("part", function(d){return d.subject});
 			join.enter()				
-			    .append("circle")
-			    .attr("cx", function(d) {
-			      return projection(d.pt)[0];
+			    .append("svg:image")
+			    .attr("xlink:href", function(d) {
+			    	return "/static/img/"+d.subject+".png";
 			    })
-			    .attr("cy", function(d) {
-			      return projection(d.pt)[1];
+			    .attr("x", function(d) {
+			      return projection(d.pt)[0]-13;
 			    })
+			    .attr("y", function(d) {
+			      return projection(d.pt)[1]-13;
+			    })
+			    .attr("width", 27)
+			    .attr("height", 27)
 			    .attr("class", "bpart")
-			    .attr("r", "8px")
 			    .style("opacity", 0)
 			    .transition()
-			    	.duration(function(d){return Math.random()*d.pt[1]*2000})
+			    	.duration(function(d){return Math.random()*d.pt[1]*100})
 			    	.style("opacity", 0.7)
 			    ;
 			join.exit()
