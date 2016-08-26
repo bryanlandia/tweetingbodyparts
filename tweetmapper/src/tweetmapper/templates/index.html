@@ -1,7 +1,18 @@
 <!DOCTYPE html>
 <meta charset="utf-8">
 <body>
-<!-- <h1>Americans tweeting about their bits</h1> -->
+
+<div id="header">
+	<h1 id="main-title">Americans tweeting about their<span id="bodyparts">...</span></h1>	
+</div>
+
+
+<div id="map"></div>
+
+
+<div id="footer">
+The most commonly tweeted body parts in all 50 states...<BR/> on a map. Updated round the clock.  Because why not?
+</div>
 
 <link rel="stylesheet" type="text/css" href="/static/css/tipsy.css" />
 <link rel="stylesheet" type="text/css" href="/static/css/style.css" />
@@ -11,16 +22,17 @@
 <script type="text/javascript" src="/static/js/jquery.tipsy.js"></script>
 <script>
 var tipsys_open=new Array();
+var have_mouseover = false;
 
 
 (function() {
 
-		var width = 1100,
+		var width = 1000,
 	    height = 600,
 	    projection;
 
 
-		var svg = d3.select("body").append("svg")
+		var svg = d3.select("#map").append("svg")
 	    .attr("width", width)
 	    .attr("height", height);
 
@@ -40,7 +52,7 @@ var tipsys_open=new Array();
 	      	.datum(land)
 	      	.attr("d", path);
 
-	     update_points();
+	     get_plurals();
 
 		});
 
@@ -119,19 +131,19 @@ var tipsys_open=new Array();
             		var points = new Array();
                     for (var loc in data) {
                     	if (data.hasOwnProperty(loc)) {
-	                    	point = {'pt': loc.split(","), 'subject':data[loc].subj, "state": data[loc].state, "tweet": "<i>#"+data[loc].state+"_"+data[loc].subj + ":</i> " + data[loc].tweet};
+	                    	point = {'pt': loc.split(","), 'subject':data[loc].subj, "state": data[loc].state, "tweet": "<i>#"+data[loc].state+"_"+data[loc].subj + ":</i> " + data[loc].tweet, 'subj_plural': parts_plural[data[loc].subj]};
 	                    	points.push(point);
 					   	}
 				    }
 				    add_points(points);
 
 				    $('svg image').tipsy({ 
-				        // gravity: 'sw',
+				        gravity: 'w',
 				        // html: true,
 				        title: function() {
 				          var d = this.__data__;
 				          return d.tweet; 
-				        }			    
+				        }
 			        });
 			    }
 			},
@@ -144,6 +156,7 @@ var tipsys_open=new Array();
 		function new_tweet_bubble() {
 			// if the user is not currently viewing a tweet bubble,
 			// open one randomly from images
+			if (have_mouseover) return false;
 			all_images = $('svg image');
 			$img = $(all_images[Math.ceil(Math.random()*all_images.length)]);
 			tipsy = $img.tipsy(true);
@@ -152,8 +165,29 @@ var tipsys_open=new Array();
 			return tipsy;
 		}
 
+		parts_plural = {}
+		
+		function get_plurals() {
+			$.ajax({
+			type: "GET",
+            contentType: "application/json; charset=utf-8",
+            url: '/static/data/bodypartsplural.json',
+            dataType: 'json',
+            async: true,
+            cache: false,
+            success: function (data) {
+            	if (data){
+            	parts_plural = data;
+            	}
+            	update_points();
+            }
+          });
+		}
+
 		var intv_id = setInterval(update_points, 5 * 1000);
-		var intv_tipsy_id = setInterval(new_tweet_bubble, 6 * 1000)
+		var intv_tipsy_id = setInterval(new_tweet_bubble, 4 * 1000);
+
+
 
 	})(jQuery);
 
