@@ -49,8 +49,12 @@ def update_subject_counts():
     print "getting locations for state {}".format(state)
 
     locations = get_locations(datapath, state)
+    hints = {}
+    with open('static/data/stephints.json', 'r') as step_hints:
+        hints = json.load(step_hints)[state]
+
     try:
-        subject_tweets_json = get_subject_tweets(locations)
+        subject_tweets_json = get_subject_tweets(locations, hints, state)
     except twitter.error.TwitterError, e:
         states_to_do.append(state)
         redis_store.set('states_to_do', ','.join(states_to_do))
@@ -140,8 +144,8 @@ def get_locations(datapath, state):
         y = miny
 
         default_step = app.config["TWITTER_SEARCH_LATLNG_INTERVAL"]    
-        with open('static/data/stephints.json', 'r') as sleep_hints:
-            hints = json.load(sleep_hints)
+        with open('static/data/stephints.json', 'r') as step_hints:
+            hints = json.load(step_hints)
             try:
                 step_lat = hints[state]['steplat']
                 step_lng = hints[state]['steplng']
@@ -171,27 +175,29 @@ def explode_subjects(subjects):
     return explode_2
 
 
-def get_subject_tweets(locations):
+def get_subject_tweets(locations, hints, state):
     subjects =  get_subjects_to_search()
-    search_word_count = 0
     max_terms = app.config["TWITTER_MAX_TERMS_PER_SEARCH"]
     search_strings = ['', ]
     subjects_list = subjects.keys()
     subjects_tweets = {}
     subjects_list_exploded = explode_subjects(subjects)
+    search_word_count = 0
     for subject in subjects_list:
         subj, words = subject, subjects[subject]
         for word in words:
             concatenator = search_word_count == 0 and '' or ' OR '
             subjects_str = quote_plus('{}{}'.format(concatenator, word))
-            if search_word_count % max_terms == 0:
-                search_strings.append('')
+            if search_word_count % max_terms == 0 and search_word_count > 0:
+                search_strings.append('')        
             search_strings[int(math.floor(search_word_count / max_terms))] += subjects_str
+            
             search_word_count += 1
             # subjects_str += quote_plus(' -'+' -'.join(APPLE_COMPUTER_RELATED_EXCLUDE).replace('\'','"'))
     
     api = get_twitter_API()
     loc_subjects = {}
+                    
     for loc in locations[:int(app.config['MAX_LOCATIONS'])]:
         subjects_count = dict.fromkeys(subjects_list, 0)
 
@@ -200,12 +206,16 @@ def get_subject_tweets(locations):
             for search_str in search_strings:
                 if search_str == '':
                     break
-                if search_str.find('+OR+') == 0:  # make sure we don't start with an OR
-                    search_str=search_str[4:]
+                if search_str.find(quote_plus(' OR ')) == 0:  # make sure we don't start with an OR
+                    search_str=search_str[len(quote_plus(' OR ')):]
+                # search_str += quote_plus(' :)')  # search only for tweets with a positive attitude! -- don't find enough
 
-                qry ="q={}&geocode={},{},50mi&result_type=recent&count={}".format(
-                search_str, loc['lat'],loc['lng'], app.config['MAX_TWEETS_PER_SEARCH']).replace('++','+')
+                radius = hints.get('search_radius', app.config['TWEET_SEARCH_MILES_RADIUS'])
+                max_tweets = app.config['MAX_TWEETS_PER_SEARCH']
+                qry ="q={}&lang=en&geocode={},{},{}mi&result_type=recent&count={}".format(
+                search_str, loc['lat'],loc['lng'], radius, max_tweets).replace('++','+')
                 results = api.GetSearch(raw_query=qry)
+                # pdb.set_trace()
                 # print "{},{} results:{}\n\n".format(loc['lat'],loc['lng'],results)
                 for tweet in results:
                     try:
@@ -238,17 +248,17 @@ def get_subject_tweets(locations):
         except twitter.error.TwitterError:
             raise 
 
+        # pdb.set_trace()
         if not len(subjects_tweets.keys()):
             # didn't find any matches!
             continue
 
+        max_count = max(subjects_count.itervalues())
+        if max_count == 0:
+            return "{}"
         most_subject = max(subjects_count.iterkeys(), key=(lambda key: subjects_count[key]))
+        
         # print "{},{}:{}\n".format(loc['lat'],loc['lng'],most_subject)
-        loc_subjects["{},{}".format(loc['lng'],loc['lat'])] = {"subj":most_subject, "tweet":subjects_tweets[most_subject]}
+        loc_subjects["{},{}".format(loc['lng'],loc['lat'])] = {"subj":most_subject, "tweet":subjects_tweets[most_subject], "state":state}
         # loc_subjects["{},{}".format(loc['lng'],loc['lat'])] = most_subject
     return json.dumps(loc_subjects)
-
-
-# if __name__ == '__main__':
-#     result = update_fruit_counts.delay()
-#     redis_store.set('fruit_data', result)

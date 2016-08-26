@@ -3,11 +3,15 @@
 <body>
 <!-- <h1>Americans tweeting about their bits</h1> -->
 
+<link rel="stylesheet" type="text/css" href="/static/css/tipsy.css" />
 <link rel="stylesheet" type="text/css" href="/static/css/style.css" />
 <script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
 <script src="http://d3js.org/topojson.v1.min.js"></script>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
+<script type="text/javascript" src="/static/js/jquery.tipsy.js"></script>
 <script>
+var tipsys_open=new Array();
+
 
 (function() {
 
@@ -63,8 +67,7 @@
 				.property("__old_data__", function(d){ return d;})
 				.data(points, key_on_lat_lng_w_variance)
 			    ;	
-			join.attr("part", function(d){return d.subject});
-			join.attr("tweet", function(d){return d.tweet});
+			join.attr("part", function(d){return d.subject});			
 			join.enter()				
 			    .append("svg:image")
 			    .attr("xlink:href", function(d) {
@@ -80,9 +83,9 @@
 			    .attr("height", 27)
 			    .attr("class", "bpart")
 			    .style("opacity", 0)
-			    .transition()
+				.transition()
 			    	.duration(function(d){return Math.random()*d.pt[1]*100})
-			    	.style("opacity", 0.7)
+			    	.style("opacity", 0.7)			    
 			    ;
 			join.exit()
 				.transition()
@@ -116,21 +119,41 @@
             		var points = new Array();
                     for (var loc in data) {
                     	if (data.hasOwnProperty(loc)) {
-                    		debugger;
-	                    	point = {'pt': loc.split(","), 'subject':data[loc].subj, "tweet":data[loc].tweet};
+	                    	point = {'pt': loc.split(","), 'subject':data[loc].subj, "state": data[loc].state, "tweet": "<i>#"+data[loc].state+"_"+data[loc].subj + ":</i> " + data[loc].tweet};
 	                    	points.push(point);
 					   	}
 				    }
-				    add_points(points);					    
-               }
-            },
+				    add_points(points);
+
+				    $('svg image').tipsy({ 
+				        // gravity: 'sw',
+				        // html: true,
+				        title: function() {
+				          var d = this.__data__;
+				          return d.tweet; 
+				        }			    
+			        });
+			    }
+			},
             error: function(xhr, textStatus, errorThrown){
                console.log(textStatus + ', ' + errorThrown);
           	}
 	    	})
 		}
 
+		function new_tweet_bubble() {
+			// if the user is not currently viewing a tweet bubble,
+			// open one randomly from images
+			all_images = $('svg image');
+			$img = $(all_images[Math.ceil(Math.random()*all_images.length)]);
+			tipsy = $img.tipsy(true);
+			tipsy.show();
+			setTimeout(function(){tipsy.hide()},5000);
+			return tipsy;
+		}
+
 		var intv_id = setInterval(update_points, 5 * 1000);
+		var intv_tipsy_id = setInterval(new_tweet_bubble, 6 * 1000)
 
 	})(jQuery);
 

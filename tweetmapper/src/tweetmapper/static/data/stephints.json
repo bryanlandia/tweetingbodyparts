@@ -1,6 +1,6 @@
 {
  "AL": { "steplat": 1.75, "steplng": 1.35},
- "AK": { "steplat": 4.9, "steplng": 6.7},
+ "AK": { "steplat": 4.9, "steplng": 6.7, "search_radius": 100},
  "AZ": { "steplat": 1.75, "steplng": 1.75},
  "AR": { "steplat": 1.5, "steplng": 1.65, "step_initial": [0,-0.25]},
  "CA": { "steplat": 1.75, "steplng": 1.75},

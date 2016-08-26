@@ -2,6 +2,7 @@
 path {
 	fill: #d0d0d0;
 	stroke: #aaa;
+	stroke-width: 2px;
 }
 
 @keyframes wiggle {
