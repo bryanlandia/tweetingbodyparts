@@ -25,6 +25,7 @@
 
             $('h1 span#bodyparts').text(' '+this.$element[0].__data__.subj_plural);
 
+
             var title = this.getTitle();
             if (title && this.enabled) {
                 var $tip = this.tip();

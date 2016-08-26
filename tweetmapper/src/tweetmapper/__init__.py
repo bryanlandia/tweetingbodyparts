@@ -18,6 +18,7 @@ states_to_do = [
      "SD", "TN", "TX", "UT", "VT", "VA", "WA", "WV", "WI", "WY"
 ]
 
+
 if redis_store.get('states_to_do') is None:
 	redis_store.set('states_to_do', ",".join(states_to_do))
 

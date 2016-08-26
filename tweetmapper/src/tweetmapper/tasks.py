@@ -171,13 +171,13 @@ def get_locations(datapath, state):
 def explode_subjects(subjects):
     keys = subjects.keys()
     explode_1 = [subjects[key] for key in keys]
+    explode_2 = [item for sublist in explode_1 for item in sublist]
     ass_throttle = app.config.get('TWEET_SEARCH_THROTTLE_ASS', False)
     if ass_throttle:
-        do_throttle = random.random() < ass_throttle
+        do_throttle = random.random() < ass_throttle      
         if do_throttle:
-            explode_1 = [terms for terms in explode_1 if 'ass' not in terms]
-
-    explode_2 = [item for sublist in explode_1 for item in sublist]
+            explode_2 = [item for sublist in explode_1 for item in sublist if 'ass' not in item]            
+        
     return explode_2
 
 
@@ -221,7 +221,7 @@ def get_subject_tweets(locations, hints, state):
                 qry ="q={}&lang=en&geocode={},{},{}mi&result_type=recent&count={}".format(
                 search_str, loc['lat'],loc['lng'], radius, max_tweets).replace('++','+')
                 results = api.GetSearch(raw_query=qry)
-                # pdb.set_trace()
+                
                 # print "{},{} results:{}\n\n".format(loc['lat'],loc['lng'],results)
                 for tweet in results:
                     try:
@@ -261,7 +261,7 @@ def get_subject_tweets(locations, hints, state):
 
         max_count = max(subjects_count.itervalues())
         if max_count == 0:
-            return "{}"
+            continue
         most_subject = max(subjects_count.iterkeys(), key=(lambda key: subjects_count[key]))
         
         # print "{},{}:{}\n".format(loc['lat'],loc['lng'],most_subject)

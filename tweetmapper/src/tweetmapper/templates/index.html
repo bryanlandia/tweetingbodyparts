@@ -3,7 +3,7 @@
 <body>
 
 <div id="header">
-	<h1 id="main-title">Americans tweeting about their<span id="bodyparts">...</span></h1>	
+	<h1 id="main-title">Americans tweeting about <span id="bodyparts">...</span></h1>	
 </div>
 
 
@@ -127,7 +127,6 @@ var have_mouseover = false;
             cache: false,
             success: function (data) {
             	// write new points to map				
-            	// debugger
             	if (data){
             		var points = new Array();
                     for (var loc in data) {
@@ -136,16 +135,17 @@ var have_mouseover = false;
 	                    	points.push(point);
 					   	}
 				    }
-				    add_points(points);
-
-				    $('svg image').tipsy({ 
-				        gravity: 'w',
-				        // html: true,
-				        title: function() {
-				          var d = this.__data__;
-				          return d.tweet; 
-				        }
-			        });
+				    if (points.length > 0) {
+				    	add_points(points);
+					    $('svg image').tipsy({ 
+					        gravity: 'w',
+					        // html: true,
+					        title: function() {
+					          var d = this.__data__;
+					          return d.tweet; 
+					        }
+				        });
+					}
 			    }
 			},
             error: function(xhr, textStatus, errorThrown){
@@ -159,11 +159,13 @@ var have_mouseover = false;
 			// open one randomly from images
 			if (have_mouseover) return false;
 			all_images = $('svg image');
-			$img = $(all_images[Math.ceil(Math.random()*all_images.length)]);
-			tipsy = $img.tipsy(true);
-			tipsy.show();
-			setTimeout(function(){tipsy.hide()},5000);
-			return tipsy;
+			if (all_images.length > 0) {
+				$img = $(all_images[Math.ceil(Math.random()*all_images.length)]);
+				tipsy = $img.tipsy(true);
+				tipsy.show();
+				setTimeout(function(){tipsy.hide()},5000);
+				return tipsy;
+			}
 		}
 
 		parts_plural = {}
