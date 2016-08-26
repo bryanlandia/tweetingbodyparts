@@ -23,8 +23,11 @@
                 tipsys_open[t].hide();
             }
 
-            $('h1 span#bodyparts').text(' '+this.$element[0].__data__.subj_plural);
-
+            try { // not sure why I'm still getting TypeErrors here
+                $('h1 span#bodyparts').text(' '+this.$element[0].__data__.subj_plural);
+            } catch (TypeError) {
+                return;
+            }
 
             var title = this.getTitle();
             if (title && this.enabled) {
