@@ -171,6 +171,12 @@ def get_locations(datapath, state):
 def explode_subjects(subjects):
     keys = subjects.keys()
     explode_1 = [subjects[key] for key in keys]
+    ass_throttle = app.config.get('TWEET_SEARCH_THROTTLE_ASS', False)
+    if ass_throttle:
+        do_throttle = random.random() < ass_throttle
+        if do_throttle:
+            explode_1 = [terms for terms in explode_1 if 'ass' not in terms]
+
     explode_2 = [item for sublist in explode_1 for item in sublist]
     return explode_2
 

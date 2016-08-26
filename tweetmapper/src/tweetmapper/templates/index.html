@@ -11,7 +11,8 @@
 
 
 <div id="footer">
-The most commonly tweeted body parts in all 50 states... on a map. Updated round the clock.  Because why not?
+The most commonly tweeted body parts in all 50 states... on a map. Updated round the clock.  Because why not?<br/>
+* disclaimer: I'm not showing all the 'ass' tweets.  If I did it'd just be a sea to shining sea of butts!
 </div>
 
 <link rel="stylesheet" type="text/css" href="/static/css/tipsy.css" />
@@ -131,7 +132,7 @@ var have_mouseover = false;
             		var points = new Array();
                     for (var loc in data) {
                     	if (data.hasOwnProperty(loc)) {
-	                    	point = {'pt': loc.split(","), 'subject':data[loc].subj, "state": data[loc].state, "tweet": "<i>#"+data[loc].state+"_"+data[loc].subj + ":</i> " + data[loc].tweet, 'subj_plural': parts_plural[data[loc].subj]};
+	                    	point = {'pt': loc.split(","), 'subject':data[loc].subj, "state": data[loc].state, "tweet": "<i>#"+data[loc].state+"_"+parts_plural[data[loc].subj] + ":</i> " + data[loc].tweet, 'subj_plural': parts_plural[data[loc].subj]};
 	                    	points.push(point);
 					   	}
 				    }
@@ -185,7 +186,7 @@ var have_mouseover = false;
 		}
 
 		var intv_id = setInterval(update_points, 5 * 1000);
-		var intv_tipsy_id = setInterval(new_tweet_bubble, 4 * 1000);
+		var intv_tipsy_id = setInterval(new_tweet_bubble, 6 * 1000);
 
 
 
