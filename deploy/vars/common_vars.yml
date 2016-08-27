@@ -13,5 +13,8 @@ main_sudo_user: bryan
 app_dir: "{{ webapps_dir }}/{{app_name}}"
 app_deploy_type: production
 app_env_name: "{{ app_name }}"
+venv_python: "{{ apps_envs_dir}}/{{app_name}}/bin/python"
+
+settings_env_var: TWEETMAPPER_SETTINGS={{app_dir}}/settings.cfg
 
 repo_url: https://github.com/bryanlandia/tweetingbodyparts.git

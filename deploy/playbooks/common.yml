@@ -19,12 +19,11 @@
     - name: Install required system packages.
       apt: pkg={{ item }} state=installed install_recommends=yes update-cache=yes
       with_items:
-        # - python-dev
+        - python-dev
         - gcc
         - python-setuptools
         - git-core
         - redis-server
-        - gdal-bin
         - libgdal1-dev
         # - nginx
       tags:
@@ -91,12 +90,14 @@
 
     - name: install pip requirements for app
       pip: 
-      requirements: "{{webapps_dir}}/{{app_name}}/requirements/base.txt"
-      executable: "{{apps_envs_dir}}/{{app_env_name}}/bin/pip"
-      chdir: "{{app_dir}}"  # necessary for local package install from requirements 
+        requirements: "{{webapps_dir}}/{{app_name}}/requirements/base.txt"
+        executable: "{{apps_envs_dir}}/{{app_env_name}}/bin/pip"
+        chdir: "{{app_dir}}"  # necessary for local package install from requirements 
       notify:
         - reload redis
-        - restart app
+        - restart celery worker
+        - restart celery beat
+        - restart flask server
       tags:
           - install
           - deploy
