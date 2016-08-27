@@ -3,19 +3,52 @@
 # variables aren't getting interpolated if I use with_items for these
 
 - name: restart celery worker
-  shell: "{{ settings_env_var }} celery -A tasks.celery worker --loglevel=WARN &" 
+  shell: "{{ settings_env_var }} celery -A tasks.celery worker --loglevel=DEBUG" 
   args:
     chdir: "{{app_dir}}"
+  when:
+    app_deploy_type=="development"
   
+- name: restart celery worker
+  supervisorctl:
+    name: celery
+    state: restarted
+  when:
+    app_deploy_type=="production"
+
 - name: restart celery beat
-  shell: "{{ settings_env_var }} celery -A tasks.celery beat --loglevel=WARN &" 
+  shell: "{{ settings_env_var }} celery -A tasks.celery beat --loglevel=DEBUG" 
   args:
     chdir: "{{app_dir}}"
+  when:
+    app_deploy_type=="development"
+
+- name: restart celery beat
+  supervisorctl:
+    name: celerybeat
+    state: restarted
+  when:
+    app_deploy_type=="production"
 
 - name: restart flask server
   shell: "{{ settings_env_var }} {{ venv_python }} runserver.py &" 
   args:
     chdir: "{{app_dir}}"
+  when:
+    app_deploy_type=="development"
  
+- name: restart flask server
+  supervisorctl:
+    name: gunicorn
+    state: restarted
+  when:
+    app_deploy_type=="production"
+
 - name: reload redis
   service: name=redis-server state=restarted
+
+- name: reload nginx
+  service: name=nginx state=reloaded
+
+- name: restart nginx
+  service: name=nginx state=restarted

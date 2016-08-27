@@ -1,0 +1,15 @@
+[program:celerybeat]
+environment={{ settings_env_var }}
+command={{ apps_envs_dir }}/{{app_name }}/bin/celery -A tasks.celery beat --loglevel=DEBUG
+directory={{ app_dir }}/tweetmapper/src/tweetmapper
+user=www
+numprocs=1
+stdout_logfile=/var/log/celery/{{ app_name }}_beat.log
+stderr_logfile=/var/log/celery/{{ app_name }}_beat.log
+autostart=true
+autorestart=true
+startsecs=10
+
+; if rabbitmq is supervised, set its priority higher
+; so it starts first
+priority=999

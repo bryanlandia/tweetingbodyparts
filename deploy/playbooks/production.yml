@@ -2,12 +2,39 @@
 
 - include: common.yml
 
-- hosts: "production"
+- hosts: production
   sudo: True
-  gather_facts: True
   vars_files:
     - ../vars/common_vars.yml  
     - ../vars/production_vars.yml
-  # include: supervisor.yml
+  tasks:
+    - name: Install production system packages
+      apt: pkg={{ item }} state=installed install_recommends=yes update-cache=yes
+      with_items:
+        - nginx
+        - supervisor
+      tags:
+        - install
+        - install-nginx
+        - install-supervisor
+    - name: make celery logging dir
+      file:
+        path: /var/log/celery
+        state: directory
+        owner: root
+        group: root
+      tags:
+        - install
+        - configure
 
+# unfortunately in ansible 1.9 playbook include with tags is broken
+- include: nginx.yml
+  # tags:
+  #   - install
+  #   - install-nginx
+
+- include: supervisor.yml
+  # tags:
+  #   - install
+  #   - install-supervisor
 

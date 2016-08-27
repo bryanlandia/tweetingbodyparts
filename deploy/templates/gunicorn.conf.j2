@@ -1,0 +1,8 @@
+[program:gunicorn]
+environment={{ settings_env_var }}
+command={{ apps_envs_dir }}/{{app_name }}/bin/gunicorn -w {{ num_gunicorn_workers }} tweetmapper:app
+directory={{ app_dir }}
+user=nobody
+autostart=true
+autorestart=true
+redirect_stderr=true

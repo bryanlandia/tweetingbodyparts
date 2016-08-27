@@ -12,7 +12,6 @@
 
 - hosts: all
   sudo: True
-  gather_facts: True
   vars_files:
     - ../vars/common_vars.yml
   tasks:
@@ -25,7 +24,6 @@
         - git-core
         - redis-server
         - libgdal1-dev
-        # - nginx
       tags:
         - install
       notify: 
@@ -73,7 +71,7 @@
       tags:
         - install
 
-    # this may not be needed now but originally I din't create the virtualenv
+    # this may not be needed now but originally I didn't create the virtualenv
     # as the webapps user
     - name: webapps user:group own app virtualenv
       command: chown -R {{common_webapps_user}}:{{common_webapps_group}} {{apps_envs_dir}}/{{app_env_name}} 
@@ -90,7 +88,7 @@
 
     - name: install pip requirements for app and restart app processes
       pip: 
-        requirements: "{{webapps_dir}}/{{app_name}}/requirements/base.txt"
+        requirements: "{{webapps_dir}}/{{app_name}}/requirements/{{app_deploy_type}}.txt"
         executable: "{{apps_envs_dir}}/{{app_env_name}}/bin/pip"
         chdir: "{{app_dir}}"  # necessary for local package install from requirements 
       notify:

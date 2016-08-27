@@ -1,2 +1,8 @@
 twitterauth.json
 settings.cfg
+
+#*.prj
+#*.sbn
+#*.sbx
+#*.shp.xml
+#*.dbf

@@ -1,0 +1,46 @@
+---
+
+- hosts: production
+  sudo: true
+  vars_files:
+  - ../vars/common_vars.yml  
+  - ../vars/production_vars.yml
+  tasks:
+    - name: start nginx
+      service:
+        name: nginx
+        state: started
+      tags:
+        - install
+        - configure
+        - install-nginx
+
+    - name: remove default nginx site from sites-enabled
+      file:
+        path: "{{ nginx_sites_enabled_dir }}/default"
+        state: absent
+      tags:
+        - install
+        - configure
+        - install-nginx
+
+    - name: Copying nginx configs for tweetsaboutbodyparts
+      template: >
+        src=../templates/tweetsaboutbodyparts.j2
+        dest="{{ nginx_sites_available_dir }}/tweetsaboutbodyparts"
+        owner=root group={{ common_webapps_user }} mode=0640
+      tags:
+        - install
+        - configure
+        - install-nginx
+
+    - name: Creating nginx config links for tweetsaboutbodyparts
+      file: >
+        src="{{ nginx_sites_available_dir }}/tweetsaboutbodyparts"
+        dest="{{ nginx_sites_enabled_dir }}/tweetsaboutbodyparts"
+        state=link owner=root group=root
+      notify: restart nginx
+      tags:
+        - install
+        - configure
+        - install-nginx

@@ -1,7 +1,5 @@
 ---
 
-# variables common to multiple roles
-
 app_name: tweetsaboutbodyparts
 webapps_dir: /opt/webapps
 webapps_log_dir: "{{ webapps_dir }}/logs"
@@ -15,6 +13,6 @@ app_deploy_type: production
 app_env_name: "{{ app_name }}"
 venv_python: "{{ apps_envs_dir}}/{{app_name}}/bin/python"
 
-settings_env_var: TWEETMAPPER_SETTINGS={{app_dir}}/settings.cfg
+settings_env_var: TWEETMAPPER_SETTINGS='{{app_dir}}/settings.cfg'
 
 repo_url: https://github.com/bryanlandia/tweetingbodyparts.git
