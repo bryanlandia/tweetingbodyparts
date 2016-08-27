@@ -1,0 +1,10 @@
+---
+
+supervisor_base_dir: "{{ webapps_dir}}/common/supervisor"
+supervisor_app_dir: "{{ supervisor_base_dir }}/configs"
+supervisor_data_dir: "{{ supervisor_base_dir }}/var"
+supervisor_log_dir: "{{ webapps_log_dir }}/supervisor"
+supervisor_venv_dir: "{{webapps_dir}}/pyenvs/supervisor"
+supervisor_user: "{{ common_webapps_user }}"
+supervisor_service_user: "{{ main_sudo_user }}"
+supervisor_service: supervisord

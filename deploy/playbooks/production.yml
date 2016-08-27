@@ -1,0 +1,13 @@
+---
+
+- include: common.yml
+
+- hosts: "production"
+  sudo: True
+  gather_facts: True
+  vars_files:
+    - ../vars/common_vars.yml  
+    - ../vars/production_vars.yml
+  # include: supervisor.yml
+
+

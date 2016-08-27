@@ -1,0 +1,17 @@
+---
+
+# variables common to multiple roles
+
+app_name: tweetsaboutbodyparts
+webapps_dir: /opt/webapps
+webapps_log_dir: "{{ webapps_dir }}/logs"
+apps_envs_dir: "{{webapps_dir}}/pyenvs"
+common_webapps_user: www
+common_webapps_group: www
+main_sudo_user: bryan
+
+app_dir: "{{ webapps_dir }}/{{app_name}}"
+app_deploy_type: production
+app_env_name: "{{ app_name }}"
+
+repo_url: https://github.com/bryanlandia/tweetingbodyparts.git

@@ -1,0 +1,107 @@
+---
+
+# install:
+# git pull the app
+# make virtualenv
+# pip install dependencies
+
+# deploy:
+# git pull the app
+# pip install dependencies
+# tell supervisor to restart app
+
+- include: handlers.yml
+
+- hosts: all
+  sudo: True
+  gather_facts: True
+  vars_files:
+    - ../vars/common_vars.yml
+  tasks:
+    - name: Install required system packages.
+      apt: pkg={{ item }} state=installed install_recommends=yes update-cache=yes
+      with_items:
+        # - python-dev
+        - gcc
+        - python-setuptools
+        - git-core
+        - redis-server
+        # - nginx
+      tags:
+        - install
+      notify: 
+        - reload redis
+
+    - name: install pip
+      action: easy_install name=pip
+      tags:
+        - install
+
+    - name: install virtualenvwrapper
+      action: pip name=virtualenvwrapper state=present
+      tags:
+        - install
+
+    - name: create webapps group
+      group: name="{{ common_webapps_group }}" state=present
+      tags:
+        - install
+
+    - name: create webapps user
+      user:    
+        name: "{{ common_webapps_user }}"
+        createhome: no
+        shell: /bin/bash
+        group: "{{ common_webapps_group }}"
+        state: present
+      tags:
+        - install
+    
+    - name: create our app directories
+      file:
+        path: "{{ item }}"
+        state: directory
+        owner: "{{common_webapps_user}}"
+        group: "{{common_webapps_group}}"
+        mode: 0755
+      with_items:
+        - "{{webapps_dir}}"
+        - "{{apps_envs_dir}}"
+        - "{{app_dir}}"
+      tags:
+        - install  
+    
+    - name: set up our app's virtualenv
+      command: virtualenv {{apps_envs_dir}}/{{app_env_name}} -p python2.7 creates="{{apps_envs_dir}}/{{app_env_name}}"
+      tags:
+        - install
+
+    # - name: use our virtualenv
+    #   command: workon {{app_env_name}}
+    #   tags:
+    #     - install
+    #     - deploy
+    #   become: yes
+    #   become_user: "{{ common_webapps_user }}"        
+
+    - name: git pull project
+      git: repo={{repo_url}} dest={{webapps_dir}}/{{app_name}} version=master      
+      tags:
+          - install
+          - deploy
+      become: true
+      become_user: "{{ common_webapps_user }}"          
+
+    - pip: 
+       requirements: "{{webapps_dir}}/{{app_name}}/requirements/{{ app_deploy_type }}.txt"
+       executable: "{{apps_envs_dir}}/{{app_env_name}}/bin/pip"
+      notify:
+        - reload redis
+        - restart app
+      tags:
+          - install
+          - deploy
+      become: true
+      become_user: "{{ common_webapps_user }}"
+
+  
