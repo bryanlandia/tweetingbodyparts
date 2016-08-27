@@ -1,19 +1,13 @@
 ---
 
-- hosts: all
-  vars: 
-    - venv_python: "{{ apps_env_dir }}/{{ app_dir }}/bin/python"
-    - settings_env_var: TWEETMAPPER_SETTINGS=/opt/sfpc/tweetsaboutfruit/settings.cfg  
-  handlers: 
-    - name: restart app      
-      command: "{{item}}"
-      args:
-          - chdir: "{{app_dir}}"
-      with_items:
-        - "{{ settings_env_var }} {{ venv_python }} celery -A tasks.celery worker --loglevel=WARN &" 
-        - "{{ settings_env_var }} {{ venv_python }} celery -A tasks.celery beat --loglevel=WARN &"
-        - "{{ settings_env_var }} {{ venv_python }} manage.py runserver.py &"
-      # supervisorctl: name={{app_name}} state=restarted
-
-    - name: reload redis
-      service: name=redis-server state=restarted
+- name: restart app      
+  command: "{{item}}"
+  args:
+      - chdir: "{{app_dir}}"
+  with_items:
+    - "{{ settings_env_var }} {{ venv_python }} celery -A tasks.celery worker --loglevel=WARN &" 
+    - "{{ settings_env_var }} {{ venv_python }} celery -A tasks.celery beat --loglevel=WARN &"
+    - "{{ settings_env_var }} {{ venv_python }} manage.py runserver.py &"
+  
+- name: reload redis
+  service: name=redis-server state=restarted

@@ -10,8 +10,6 @@
 # pip install dependencies
 # tell supervisor to restart app
 
-- include: handlers.yml
-
 - hosts: all
   sudo: True
   gather_facts: True
@@ -26,6 +24,8 @@
         - python-setuptools
         - git-core
         - redis-server
+        - gdal-bin
+        - libgdal1-dev
         # - nginx
       tags:
         - install
@@ -37,11 +37,6 @@
       tags:
         - install
 
-    - name: install virtualenvwrapper
-      action: pip name=virtualenvwrapper state=present
-      tags:
-        - install
-
     - name: create webapps group
       group: name="{{ common_webapps_group }}" state=present
       tags:
@@ -50,7 +45,8 @@
     - name: create webapps user
       user:    
         name: "{{ common_webapps_user }}"
-        createhome: no
+        # need a home dir for pip cache
+        createhome: yes
         shell: /bin/bash
         group: "{{ common_webapps_group }}"
         state: present
@@ -73,16 +69,17 @@
     
     - name: set up our app's virtualenv
       command: virtualenv {{apps_envs_dir}}/{{app_env_name}} -p python2.7 creates="{{apps_envs_dir}}/{{app_env_name}}"
+      become: true
+      become_user: "{{common_webapps_user}}"
       tags:
         - install
 
-    # - name: use our virtualenv
-    #   command: workon {{app_env_name}}
-    #   tags:
-    #     - install
-    #     - deploy
-    #   become: yes
-    #   become_user: "{{ common_webapps_user }}"        
+    # this may not be needed now but originally I din't create the virtualenv
+    # as the webapps user
+    - name: webapps user:group own app virtualenv
+      command: chown -R {{common_webapps_user}}:{{common_webapps_group}} {{apps_envs_dir}}/{{app_env_name}} 
+      tags:
+        - install
 
     - name: git pull project
       git: repo={{repo_url}} dest={{webapps_dir}}/{{app_name}} version=master      
@@ -90,11 +87,13 @@
           - install
           - deploy
       become: true
-      become_user: "{{ common_webapps_user }}"          
+      become_user: "{{ common_webapps_user }}"        
 
-    - pip: 
-       requirements: "{{webapps_dir}}/{{app_name}}/requirements/{{ app_deploy_type }}.txt"
-       executable: "{{apps_envs_dir}}/{{app_env_name}}/bin/pip"
+    - name: install pip requirements for app
+      pip: 
+      requirements: "{{webapps_dir}}/{{app_name}}/requirements/base.txt"
+      executable: "{{apps_envs_dir}}/{{app_env_name}}/bin/pip"
+      chdir: "{{app_dir}}"  # necessary for local package install from requirements 
       notify:
         - reload redis
         - restart app
@@ -104,4 +103,5 @@
       become: true
       become_user: "{{ common_webapps_user }}"
 
-  
+  handlers:
+    - include: handlers.yml
