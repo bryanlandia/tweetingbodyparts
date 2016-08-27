@@ -3,17 +3,17 @@
 # variables aren't getting interpolated if I use with_items for these
 
 - name: restart celery worker
-  shell: "{{ settings_env_var }} {{ venv_python }} celery -A tasks.celery worker --loglevel=WARN &" 
+  shell: "{{ settings_env_var }} celery -A tasks.celery worker --loglevel=WARN &" 
   args:
     chdir: "{{app_dir}}"
   
 - name: restart celery beat
-  shell: "{{ settings_env_var }} {{ venv_python }} celery -A tasks.celery beat --loglevel=WARN &" 
+  shell: "{{ settings_env_var }} celery -A tasks.celery beat --loglevel=WARN &" 
   args:
     chdir: "{{app_dir}}"
 
 - name: restart flask server
-  shell: "{{ settings_env_var }} {{ venv_python }} manage.py runserver.py &" 
+  shell: "{{ settings_env_var }} {{ venv_python }} runserver.py &" 
   args:
     chdir: "{{app_dir}}"
  

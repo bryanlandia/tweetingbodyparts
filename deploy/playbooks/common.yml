@@ -88,7 +88,7 @@
       become: true
       become_user: "{{ common_webapps_user }}"        
 
-    - name: install pip requirements for app
+    - name: install pip requirements for app and restart app processes
       pip: 
         requirements: "{{webapps_dir}}/{{app_name}}/requirements/base.txt"
         executable: "{{apps_envs_dir}}/{{app_env_name}}/bin/pip"
