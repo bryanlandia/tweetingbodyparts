@@ -37,7 +37,7 @@ var have_mouseover = false;
 	    .attr("width", width)
 	    .attr("height", height);
 
-		d3.json("/static/data/us.json", function(error, us) {
+		d3.json("static/data/us.json", function(error, us) {
 		  if (error) return console.error(error);
 		  console.log(us);
 
@@ -84,7 +84,7 @@ var have_mouseover = false;
 			join.enter()				
 			    .append("svg:image")
 			    .attr("xlink:href", function(d) {
-			    	return "/static/img/"+d.subject+".png";
+			    	return "static/img/"+d.subject+".png";
 			    })
 			    .attr("x", function(d) {
 			      return projection(d.pt)[0]-13;
@@ -174,7 +174,7 @@ var have_mouseover = false;
 			$.ajax({
 			type: "GET",
             contentType: "application/json; charset=utf-8",
-            url: '/static/data/bodypartsplural.json',
+            url: 'static/data/bodypartsplural.json',
             dataType: 'json',
             async: true,
             cache: false,
