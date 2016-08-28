@@ -262,7 +262,9 @@ def get_subject_tweets(locations, hints, state):
         max_count = max(subjects_count.itervalues())
         if max_count == 0:
             continue
-        most_subject = max(subjects_count.iterkeys(), key=(lambda key: subjects_count[key]))
+        # many times there will be ties. don't always choose the same subj
+        all_with_max_count = [k for k in subjects_count.iterkeys() if subjects_count[k]==max_count]
+        most_subject = random.choice(all_with_max_count)
         
         # print "{},{}:{}\n".format(loc['lat'],loc['lng'],most_subject)
         loc_subjects["{},{}".format(loc['lng'],loc['lat'])] = {"subj":most_subject, "tweet":subjects_tweets[most_subject], "state":state}
