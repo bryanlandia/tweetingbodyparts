@@ -99,9 +99,12 @@
         chdir: "{{app_dir}}"  # necessary for local package install from requirements 
       notify:
         - reload redis
-        - restart celery worker
-        - restart celery beat
-        - restart flask server
+        - restart celery worker_development
+        - restart celery worker_production
+        - restart celery beat_development
+        - restart celery beat_production
+        - restart flask server_development
+        - restart flask server_production
       tags:
           - install
           - deploy
