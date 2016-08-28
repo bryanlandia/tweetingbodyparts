@@ -174,7 +174,7 @@ def explode_subjects(subjects):
     explode_2 = [item for sublist in explode_1 for item in sublist]
     ass_throttle = app.config.get('TWEET_SEARCH_THROTTLE_ASS', False)
     if ass_throttle:
-        do_throttle = random.random() < ass_throttle      
+        do_throttle = random.random() >= ass_throttle      
         if do_throttle:
             explode_2 = [item for sublist in explode_1 for item in sublist if 'ass' not in item]            
         
