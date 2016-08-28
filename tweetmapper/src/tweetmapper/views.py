@@ -33,3 +33,13 @@ if app.config['DEPLOYMENT'] == 'dev':
 		redis_store.set('states_to_do', ','.join(states_to_do))
 		return "\n\nReset Redis store for subject_data and states_to_do"
 
+	@app.route("/get_data")
+	def get_data():
+		"""
+		return redis_store values
+		"""
+		subjs = redis_store.get('subject_data')
+		states_to_do = redis_store.get('states_to_do')
+
+		return "Redis store data:<br/><br/>states_to_do:<br/>{}<br/><br/>subject_data<br/>{}".format(states_to_do, subjs)
+

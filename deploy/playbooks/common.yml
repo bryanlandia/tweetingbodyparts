@@ -29,6 +29,12 @@
       notify: 
         - reload redis
 
+    # - name: install gdal 1.11.5 from source
+    #   script: ../scripts/gdal_install.sh creates=/usr/bin/gdal-1.11.5
+    #   tags:
+    #     - install
+
+
     - name: install pip
       action: easy_install name=pip
       tags:
