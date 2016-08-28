@@ -34,6 +34,7 @@
         - install
         - configure
         - install-nginx
+        - configure-nginx
 
     - name: Creating nginx config links for tweetsaboutbodyparts
       file: >
@@ -43,3 +44,7 @@
       tags:
         - install
         - install-nginx
+
+  handlers:
+      - include: handlers.yml
+
