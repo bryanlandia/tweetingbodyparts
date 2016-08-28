@@ -5,6 +5,7 @@
   vars_files:
   - ../vars/common_vars.yml  
   - ../vars/production_vars.yml
+  - ../vars/secrets.yml
   tasks:
     - name: copy confs to /etc/supervisor/conf.d directory
       template:
@@ -17,6 +18,7 @@
         - celeryworker
         - celerybeat
         - gunicorn
+        - inet_http_server
       tags:
         - install
         - configure

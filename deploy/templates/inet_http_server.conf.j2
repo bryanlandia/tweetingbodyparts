@@ -1,0 +1,5 @@
+; set these secrets in your vars/secrets.yml file, encrypted with ansible vault
+[inet_http_server]
+port = 127.0.0.1:9001
+username = {{ supervisor_inet_http_server_user }}
+password = {{ supervisor_inet_http_server_pwd }}
