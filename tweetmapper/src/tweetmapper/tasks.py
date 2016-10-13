@@ -270,3 +270,7 @@ def get_subject_tweets(locations, hints, state):
         loc_subjects["{},{}".format(loc['lng'],loc['lat'])] = {"subj":most_subject, "tweet":subjects_tweets[most_subject], "state":state}
         # loc_subjects["{},{}".format(loc['lng'],loc['lat'])] = most_subject
     return json.dumps(loc_subjects)
+    # test result
+    # return '{"-109.3034283,42.7442893656": {"tweet": " If you\'re ever hungover and end up at my house, you can bet your ass you\'ll wake up to some bomb breakfast lol ", "subj": "brain", "state": "WY"}}'
+
+

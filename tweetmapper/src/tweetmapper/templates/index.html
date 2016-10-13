@@ -82,7 +82,13 @@ var have_mouseover = false;
 				.property("__old_data__", function(d){ return d;})
 				.data(points, key_on_lat_lng_w_variance)
 			    ;	
-			join.attr("part", function(d){return d.subject});			
+
+			join.attr("part", function(d){return d.subject});				
+			join.attr("xlink:href", function(d) {
+		    		return "static/img/"+d.subject+".png";
+		    	})
+		    	;
+
 			join.enter()				
 			    .append("svg:image")
 			    .attr("xlink:href", function(d) {
