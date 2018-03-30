@@ -14,6 +14,7 @@
         - install
         - configure
         - install-nginx
+        - configure-nginx
 
     - name: remove default nginx site from sites-enabled
       file:
