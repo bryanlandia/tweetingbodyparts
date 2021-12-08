@@ -1,5 +1,5 @@
 from setuptools import setup, find_packages
-import sys, os
+import os
 
 here = os.path.abspath(os.path.dirname(__file__))
 
@@ -16,7 +16,6 @@ install_requires = [
 setup(name='tweetmapper',
     version=version,
     description="Flask based API to return geolocated tweets",
-    long_description=README + '\n\n' + NEWS,
     classifiers=[
       # Get strings from http://pypi.python.org/pypi?%3Aaction=list_classifiers
     ],
