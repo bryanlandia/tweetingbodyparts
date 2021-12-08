@@ -3,7 +3,8 @@
 - include: common.yml
 
 - hosts: production
-  sudo: True
+  become: True
+  become_method: sudo
   vars_files:
     - ../vars/common_vars.yml  
     - ../vars/production_vars.yml
@@ -30,7 +31,7 @@
 # unfortunately in ansible 1.9 playbook include with tags is broken
 - include: nginx.yml
   # tags:
-  #   - install
+  #   - install\
   #   - install-nginx
 
 - include: supervisor.yml

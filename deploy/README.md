@@ -17,7 +17,7 @@ then, from the project root directory.
 
 To install:
 ```
-ansible-playbook -i deploy/inventory.ini deploy/playbooks/production.yml --user bryan -e@"deploy/server-vars.yml" --vault-password-file=~/.ansible_vault_pwd -t install
+/opt/virtualenvs/tweetsaboutbodyparts//bin/ansible-playbook ansible-playbook -i deploy/inventory.ini deploy/playbooks/production.yml --user bryan -e@"deploy/server-vars.yml" --vault-password-file=~/.ansible_vault_pwd -t install
 ```
 
 * Change `production.yml` to whichever of `production|development` server you want to deploy to.
@@ -27,7 +27,7 @@ ansible-playbook -i deploy/inventory.ini deploy/playbooks/production.yml --user 
 
 To deploy (update software from repositories, restart servers):
 ```
-ansible-playbook -i deploy/inventory.ini deploy/playbooks/production.yml --user bryan -e@"deploy/server-vars.yml" --vault-password-file=~/.ansible_vault_pwd -t deploy
+/opt/virtualenvs/tweetsaboutbodyparts//bin/ansible-playbook ansible-playbook -i deploy/inventory.ini deploy/playbooks/production.yml --user bryan -e@"deploy/server-vars.yml" --vault-password-file=~/.ansible_vault_pwd -t deploy
 ```
 
 * as it is, you will have to manually add a `twitterauth.json` file similar to this (TODO: do this with Ansible but store in vault-encrypted file)

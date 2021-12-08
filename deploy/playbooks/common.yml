@@ -11,19 +11,20 @@
 # tell supervisor to restart app
 
 - hosts: all
-  sudo: True
   vars_files:
     - ../vars/common_vars.yml
+  become: True
+  become_method: sudo  
   tasks:
     - name: Install required system packages.
-      apt: pkg={{ item }} state=installed install_recommends=yes update-cache=yes
+      apt: pkg={{ item }} state=present install_recommends=yes update-cache=yes
       with_items:
         - python-dev
         - gcc
         - python-setuptools
         - git-core
         - redis-server
-        - libgdal1-dev
+        - libgdal-dev
       tags:
         - install
       notify: 

@@ -1,7 +1,8 @@
 ---
 
 - hosts: production
-  sudo: true
+  become: True
+  become_method: sudo
   vars_files:
   - ../vars/common_vars.yml  
   - ../vars/production_vars.yml
