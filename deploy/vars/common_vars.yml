@@ -8,6 +8,12 @@ common_webapps_user: www
 common_webapps_group: www
 main_sudo_user: bryan
 
+common_pip_version: "20.0.2"
+common_pip_pkgs:
+  - pip=={{ common_pip_version }}
+  - setuptools==44.1.0
+  - virtualenv==16.7.10
+
 app_dir: "{{ webapps_dir }}/{{app_name}}"
 app_deploy_type: production
 app_env_name: "{{ app_name }}"

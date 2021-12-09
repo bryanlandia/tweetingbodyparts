@@ -19,9 +19,11 @@
     - name: Install required system packages.
       apt: pkg={{ item }} state=present install_recommends=yes update-cache=yes
       with_items:
+        - acl
         - python-dev
         - gcc
         - python-setuptools
+        - python3-pip
         - git-core
         - redis-server
         - libgdal-dev
@@ -34,12 +36,6 @@
     #   script: ../scripts/gdal_install.sh creates=/usr/bin/gdal-1.11.5
     #   tags:
     #     - install
-
-
-    - name: install pip
-      action: easy_install name=pip
-      tags:
-        - install
 
     - name: create webapps group
       group: name="{{ common_webapps_group }}" state=present
@@ -56,7 +52,7 @@
         state: present
       tags:
         - install
-    
+   
     - name: create our app directories
       file:
         path: "{{ item }}"
@@ -69,10 +65,21 @@
         - "{{apps_envs_dir}}"
         - "{{app_dir}}"
       tags:
-        - install  
-    
+        - install
+
+    - name: pip install virtualenv
+      pip:
+        executable: pip3
+        name: "{{ common_pip_pkgs }}"
+        state: present
+      tags:
+        - install
+
     - name: set up our app's virtualenv
-      command: virtualenv {{apps_envs_dir}}/{{app_env_name}} -p python2.7 creates="{{apps_envs_dir}}/{{app_env_name}}"
+      command: "virtualenv {{ app_env_name }} -p python2.7"
+      args:
+        chdir: "{{ apps_envs_dir }}"
+        creates: "{{ app_env_name }}/bin/pip"
       become: true
       become_user: "{{common_webapps_user}}"
       tags:
@@ -86,12 +93,12 @@
         - install
 
     - name: git pull project
-      git: repo={{repo_url}} dest={{webapps_dir}}/{{app_name}} version=master      
+      git: repo={{repo_url}} dest={{webapps_dir}}/{{app_name}} version=master
+      become: true
+      become_user: "{{ common_webapps_user }}"        
       tags:
           - install
           - deploy
-      become: true
-      become_user: "{{ common_webapps_user }}"        
 
     - name: install pip requirements for app and restart app processes
       pip: 
@@ -111,6 +118,9 @@
           - deploy
       become: true
       become_user: "{{ common_webapps_user }}"
+
+  # probably need to make a task to do this to generate the SHX
+  # SHAPE_RESTORE_SHX=YES fio info tweetmapper/src/tweetmapper/prod-states.shp
 
   handlers:
     - include: handlers.yml

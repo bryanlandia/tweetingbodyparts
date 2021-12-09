@@ -10,7 +10,7 @@
     - ../vars/production_vars.yml
   tasks:
     - name: Install production system packages
-      apt: pkg={{ item }} state=installed install_recommends=yes update-cache=yes
+      apt: pkg={{ item }} state=present install_recommends=yes update-cache=yes
       with_items:
         - nginx
         - supervisor
@@ -28,14 +28,8 @@
         - install
         - configure
 
-# unfortunately in ansible 1.9 playbook include with tags is broken
-- include: nginx.yml
-  # tags:
-  #   - install\
-  #   - install-nginx
 
 - include: supervisor.yml
-  # tags:
-  #   - install
-  #   - install-supervisor
 
+# unfortunately in ansible 1.9 playbook include with tags is broken
+- include: nginx.yml

@@ -43,7 +43,7 @@ def update_subject_counts():
         return "Used {} API requests.  Waiting for Twitter ratelimit reset at {}".format(e.status.limit, reset)
 
     datapath = app.config['STATES_SHAPE_FILE_PATH']
-    
+
     states_to_do = redis_store.get('states_to_do').split(',')
     state = states_to_do.pop()
     print "getting locations for state {}".format(state)
@@ -74,28 +74,31 @@ def update_subject_counts():
 
 
 def check_do_twitter_update():
+    """ See if we can even do our next update from Twitter API, based on 
+        our RateLimit status and the number of requets needed
+    """
+
+    # check if we might even have run out of requests to check our RateLimit!
+    check_rate_api = get_twitter_API(application_only=False, sleep_on_rate_limit=True)  # use user auth for this one 
+    rlstatusstatus = check_rate_api.CheckRateLimit("https://api.twitter.com/1.1/application/rate_limit_status.json")
+    if rlstatusstatus.remaining < 1:
+        raise TwitterRateError(rlstatusstatus)
+
     subjects = get_subjects_to_search()
     subjects_len = len([word for word in [subj for subj in subjects.keys()]])
     max_terms = app.config["TWITTER_MAX_TERMS_PER_SEARCH"]
+
+    # this seems like it might be wrong, look at math.floor instead?
     num_queries_for_subjects = float(subjects_len)/float(max_terms)
     num_queries_for_subjects = int(math.ceil(num_queries_for_subjects))
     queries_by_task_run = app.config["MAX_LOCATIONS"] * num_queries_for_subjects
 
-
-    # check if we might even have run out of requests to check our RateLimit
-    check_rate_api = get_twitter_API(application_only=False, sleep_on_rate_limit=True)  # use user auth for this one 
-    rlstatusstatus = check_rate_api.CheckRateLimit("https://api.twitter.com/1.1/application/rate_limit_status.json")
-    if rlstatusstatus.remaining < 1:
-        return False
-
     api = get_twitter_API()
-
-    # TO DO also check the ratelimit for checking the ratelimit check endpoint
-    # so we don't go over API limit on that too!
     rlstatus = api.CheckRateLimit("https://api.twitter.com/1.1/search/tweets.json")
     print "Twitter API limit:{}, remaining:{}".format(rlstatus.limit, rlstatus.remaining)
     if rlstatus.remaining < queries_by_task_run:
         raise TwitterRateError(rlstatus) 
+    
     return True
 
 
@@ -105,6 +108,7 @@ def get_subjects_to_search():
         return subjects
     
 
+# TODO: cache this (per arg set) so we don't have to keep opening the file
 def get_twitter_API(application_only=True, sleep_on_rate_limit=False):
     with open(app.config['TWITTER_AUTH_FILE_PATH'], 'r') as json_auth:
         auth = json.load(json_auth)
@@ -119,13 +123,14 @@ def get_twitter_API(application_only=True, sleep_on_rate_limit=False):
     return api
 
 
+# TODO: cache this per state
 def get_locations(datapath, state):
     """ 
     return a list of lat/lng tuples for map requests based on boundary points from XML datafile,
     the zoom level, and map tile size desired
     """
 
-    # we want to get a list of every point for which to query Static Maps API
+    # we want to get a list of every point for which to query Twitter API
     # so this will be a large set of points which must all be contained inside the
     # shape of the state
     locations = []
@@ -195,7 +200,7 @@ def get_subject_tweets(locations, hints, state):
             concatenator = search_word_count == 0 and '' or ' OR '
             subjects_str = quote_plus('{}{}'.format(concatenator, word))
             if search_word_count % max_terms == 0 and search_word_count > 0:
-                search_strings.append('')        
+                search_strings.append('')  # TODO: does this do anything?
             search_strings[int(math.floor(search_word_count / max_terms))] += subjects_str
             
             search_word_count += 1
@@ -207,7 +212,7 @@ def get_subject_tweets(locations, hints, state):
     for loc in locations[:int(app.config['MAX_LOCATIONS'])]:
         subjects_count = dict.fromkeys(subjects_list, 0)
 
-        # qry="q=pear%20&geocode={},{},10mi&result_type=recent&count=100".format(loc['lat'],loc['lng'])
+        # qry="q=nose%20&geocode={},{},10mi&result_type=recent&count=100".format(loc['lat'],loc['lng'])
         try:
             for search_str in search_strings:
                 if search_str == '':
@@ -216,6 +221,7 @@ def get_subject_tweets(locations, hints, state):
                     search_str=search_str[len(quote_plus(' OR ')):]
                 # search_str += quote_plus(' :)')  # search only for tweets with a positive attitude! -- don't find enough
 
+                # TODO: radius and max_tweets can be moved out of for loop
                 radius = hints.get('search_radius', app.config['TWEET_SEARCH_MILES_RADIUS'])
                 max_tweets = app.config['MAX_TWEETS_PER_SEARCH']
                 qry ="q={}&lang=en&geocode={},{},{}mi&result_type=recent&count={}".format(
