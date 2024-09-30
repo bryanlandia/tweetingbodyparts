@@ -1,5 +1,4 @@
-import base64
-import copy 
+import logging
 import re
 import math
 import random
@@ -19,7 +18,7 @@ from tweetmapper import app, redis_store
 
 
 celery = Celery(app)
-
+logger = logging.getLogger(__name__)
 
 class TwitterRateError(tweepy.errors.TweepError):
 
