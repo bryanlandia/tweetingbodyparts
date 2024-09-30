@@ -63,6 +63,7 @@ def update_subject_counts():
     # overwrite old json object properties with new, add other new
     from_store = json.loads(redis_store.get('subject_data'))
     if from_store is None:
+        redis_store.set('subject_data', {})
         from_store = {}
 
     new = json.loads(subject_tweets_json)
