@@ -1,7 +1,9 @@
-from os import getenv
+import json 
 
 from flask import Flask
 from flask.ext.redis import FlaskRedis
+
+import tweepy
 
 app = Flask(__name__)
 app.config.from_object('tweetmapper.default_settings')

@@ -44,7 +44,7 @@ def update_subject_counts():
 
     states_to_do = redis_store.get('states_to_do').split(',')
     state = states_to_do.pop()
-    print "getting locations for state {}".format(state)
+    print(f"getting locations for state {state}")
 
     locations = get_locations(datapath, state)
     hints = {}
@@ -53,7 +53,7 @@ def update_subject_counts():
 
     try:
         subject_tweets_json = get_subject_tweets(locations, hints, state)
-    except tweepy.error.TweepError, e:
+    except tweepy.error.TweepError as e:
         states_to_do.append(state)
         redis_store.set('states_to_do', ','.join(states_to_do))
         return "Hit TweepError {}.  Probably hit a RateLimit mid-run.  Wait and try again...".format(str(e))
@@ -273,7 +273,7 @@ def get_subject_tweets(locations, hints, state):
                                 subjects_count[subj] +=1
                                 subjects_tweets[subj] = text
                                 break
-                        # print "{},{}\n------------\n{}".format(loc['lat'],loc['lng'],subjects_count)
+                        # print("{},{}\n------------\n{}".format(loc['lat'],loc['lng'],subjects_count))
 
                     except (ValueError, IndexError):
                         pass
@@ -292,11 +292,9 @@ def get_subject_tweets(locations, hints, state):
         all_with_max_count = [k for k in subjects_count.iterkeys() if subjects_count[k]==max_count]
         most_subject = random.choice(all_with_max_count)
         
-        # print "{},{}:{}\n".format(loc['lat'],loc['lng'],most_subject)
+        # print("{},{}:{}\n".format(loc['lat'],loc['lng'],most_subject))
         loc_subjects["{},{}".format(loc['lng'],loc['lat'])] = {"subj":most_subject, "tweet":subjects_tweets[most_subject], "state":state}
         # loc_subjects["{},{}".format(loc['lng'],loc['lat'])] = most_subject
     return json.dumps(loc_subjects)
     # test result
     # return '{"-109.3034283,42.7442893656": {"tweet": " If you\'re ever hungover and end up at my house, you can bet your ass you\'ll wake up to some bomb breakfast lol ", "subj": "brain", "state": "WY"}}'
-
-
