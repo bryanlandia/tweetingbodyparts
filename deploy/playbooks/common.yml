@@ -76,7 +76,7 @@
         - install
 
     - name: set up our app's virtualenv
-      command: "virtualenv {{ app_env_name }} -p python2.7"
+      command: "virtualenv {{ app_env_name }} -p python3.7"
       args:
         chdir: "{{ apps_envs_dir }}"
         creates: "{{ app_env_name }}/bin/pip"
