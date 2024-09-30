@@ -10,7 +10,7 @@ import requests
 import json
 import fiona
 from shapely import geometry
-import twitter
+import tweepy
 
 from celery.contrib import rdb as pdb
 from flask.ext.celery import Celery
@@ -21,10 +21,10 @@ from tweetmapper import app, redis_store
 celery = Celery(app)
 
 
-class TwitterRateError(twitter.TwitterError):
+class TwitterRateError(tweepy.errors.TweepError):
 
     def __init__(self, status):
-        self.status = status
+        self.reason = status
 
 
 @celery.task()
@@ -80,10 +80,10 @@ def check_do_twitter_update():
     """
 
     # check if we might even have run out of requests to check our RateLimit!
-    check_rate_api = get_twitter_API(application_only=False, sleep_on_rate_limit=True)  # use user auth for this one 
-    rlstatusstatus = check_rate_api.CheckRateLimit("https://api.twitter.com/1.1/application/rate_limit_status.json")
-    if rlstatusstatus.remaining < 1:
-        raise TwitterRateError(rlstatusstatus)
+    # check_rate_api = get_twitter_API(sleep_on_rate_limit=True)  # use user auth for this one 
+    # rlstatusstatus = check_rate_api.CheckRateLimit("https://api.twitter.com/1.1/application/rate_limit_status.json")
+    # if rlstatusstatus.remaining < 1:
+    #     raise TwitterRateError(rlstatusstatus)
 
     subjects = get_subjects_to_search()
     subjects_len = len([word for word in [subj for subj in subjects.keys()]])
@@ -95,9 +95,13 @@ def check_do_twitter_update():
     queries_by_task_run = app.config["MAX_LOCATIONS"] * num_queries_for_subjects
 
     api = get_twitter_API()
-    rlstatus = api.CheckRateLimit("https://api.twitter.com/1.1/search/tweets.json")
-    print "Twitter API limit:{}, remaining:{}".format(rlstatus.limit, rlstatus.remaining)
-    if rlstatus.remaining < queries_by_task_run:
+    rlstatus = api.rate_limit_status(resources=['search'])
+    limit, remaining = (
+        rlstatus['resources']['search']['/search/tweets']['limit'],
+        rlstatus['resources']['search']['/search/tweets']['remaining']
+    )
+    print "Twitter API limit:{}, remaining:{}".format(limit, remaining)
+    if remaining < queries_by_task_run:
         raise TwitterRateError(rlstatus) 
     
     return True
@@ -110,17 +114,24 @@ def get_subjects_to_search():
     
 
 # TODO: cache this (per arg set) so we don't have to keep opening the file
-def get_twitter_API(application_only=True, sleep_on_rate_limit=False):
+def get_twitter_API(sleep_on_rate_limit=False):
     with open(app.config['TWITTER_AUTH_FILE_PATH'], 'r') as json_auth:
-        auth = json.load(json_auth)
+        auth_dict = json.load(json_auth)
 
-    api = twitter.Api(consumer_key=auth['consumer_key'],
-                      consumer_secret=auth['consumer_secret'],
-                      access_token_key=auth['access_token_key'],
-                      access_token_secret=auth['access_token_secret'],
-                      application_only_auth=application_only,
-                      sleep_on_rate_limit=sleep_on_rate_limit)
-    
+    consumer_key = auth_dict['consumer_key']
+    consumer_secret = auth_dict['consumer_secret']
+    access_token = auth_dict['access_token_key']
+    access_token_secret = auth_dict['access_token_secret']
+
+    auth = tweepy.OAuthHandler(consumer_key, consumer_secret)
+    auth.set_access_token(access_token, access_token_secret)
+    # (consumer_key=auth['consumer_key'],
+    #                   consumer_secret=auth['consumer_secret'],
+    #                   access_token_key=auth['access_token_key'],
+    #                   access_token_secret=auth['access_token_secret'],
+    #                   application_only_auth=application_only,
+    #                   sleep_on_rate_limit=sleep_on_rate_limit)
+    api = tweepy.API(auth, wait_on_rate_limit=sleep_on_rate_limit)
     return api
 
 
@@ -188,6 +199,10 @@ def explode_subjects(subjects):
 
 
 def get_subject_tweets(locations, hints, state):
+    """
+    Actually query Twitter/X for the tweets by subjects.
+    """
+
     subjects =  get_subjects_to_search()
     max_terms = app.config["TWITTER_MAX_TERMS_PER_SEARCH"]
     search_strings = ['', ]
@@ -220,14 +235,18 @@ def get_subject_tweets(locations, hints, state):
                     break
                 if search_str.find(quote_plus(' OR ')) == 0:  # make sure we don't start with an OR
                     search_str=search_str[len(quote_plus(' OR ')):]
-                # search_str += quote_plus(' :)')  # search only for tweets with a positive attitude! -- don't find enough
 
                 # TODO: radius and max_tweets can be moved out of for loop
                 radius = hints.get('search_radius', app.config['TWEET_SEARCH_MILES_RADIUS'])
                 max_tweets = app.config['MAX_TWEETS_PER_SEARCH']
                 qry ="q={}&lang=en&geocode={},{},{}mi&result_type=recent&count={}".format(
                 search_str, loc['lat'],loc['lng'], radius, max_tweets).replace('++','+')
-                results = api.GetSearch(raw_query=qry)
+
+                # make the API search query, will return tweepy.models.SearchResults
+                # allowed_param=['q', 'lang', 'locale', 'since_id', 'geocode',
+                #    'max_id', 'until', 'result_type', 'count',
+                #    'include_entities']
+                results = api.search(qry)
                 
                 # print "{},{} results:{}\n\n".format(loc['lat'],loc['lng'],results)
                 for tweet in results:
@@ -258,7 +277,7 @@ def get_subject_tweets(locations, hints, state):
 
                     except (ValueError, IndexError):
                         pass
-        except twitter.error.TwitterError:
+        except tweepy.error.TweepError:
             raise 
 
         # pdb.set_trace()
