@@ -93,7 +93,9 @@ def check_do_twitter_update():
     queries_by_task_run = app.config["MAX_LOCATIONS"] * num_queries_for_subjects
 
     api = get_twitter_API()
-    rlstatus = api.rate_limit_status(resources=['search'])
+    rlstatus = api.rate_limit_status()
+
+    # logger.warning('rlstatus is: {}'.format(rlstatus))
     limit, remaining = (
         rlstatus['resources']['search']['/search/tweets']['limit'],
         rlstatus['resources']['search']['/search/tweets']['remaining']
