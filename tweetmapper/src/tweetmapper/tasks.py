@@ -5,7 +5,6 @@ import random
 import time
 
 from urllib import quote_plus
-import requests
 import json
 import fiona
 from shapely import geometry
@@ -20,7 +19,7 @@ from tweetmapper import app, redis_store
 celery = Celery(app)
 logger = logging.getLogger(__name__)
 
-class TwitterRateError(tweepy.errors.TweepError):
+class TwitterRateError(tweepy.error.TweepError):
 
     def __init__(self, status):
         self.reason = status
