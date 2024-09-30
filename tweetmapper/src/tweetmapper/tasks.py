@@ -13,7 +13,7 @@ import tweepy
 from celery.contrib import rdb as pdb
 from flask.ext.celery import Celery
 
-from tweetmapper import app, redis_store
+from tweetmapper import app, twitter_client, redis_store
 
 
 celery = Celery(app)
@@ -92,17 +92,17 @@ def check_do_twitter_update():
     num_queries_for_subjects = int(math.ceil(num_queries_for_subjects))
     queries_by_task_run = app.config["MAX_LOCATIONS"] * num_queries_for_subjects
 
-    api = get_twitter_API()
-    rlstatus = api.rate_limit_status()
+    client = twitter_client
 
+    # rlstatus = api.rate_limit_status()
     # logger.warning('rlstatus is: {}'.format(rlstatus))
-    limit, remaining = (
-        rlstatus['resources']['search']['/search/tweets']['limit'],
-        rlstatus['resources']['search']['/search/tweets']['remaining']
-    )
-    print "Twitter API limit:{}, remaining:{}".format(limit, remaining)
-    if remaining < queries_by_task_run:
-        raise TwitterRateError(rlstatus) 
+    # limit, remaining = (
+    #     rlstatus['resources']['search']['/search/tweets']['limit'],
+    #     rlstatus['resources']['search']['/search/tweets']['remaining']
+    # )
+    # print("Twitter API limit:{}, remaining:{}".format(limit, remaining))
+    # if remaining < queries_by_task_run:
+    #     raise TwitterRateError(rlstatus) 
     
     return True
 
@@ -111,28 +111,6 @@ def get_subjects_to_search():
     with open('static/data/bodyparts.json', 'r') as json_subjects:
         subjects = json.load(json_subjects)['subjects']
         return subjects
-    
-
-# TODO: cache this (per arg set) so we don't have to keep opening the file
-def get_twitter_API(sleep_on_rate_limit=False):
-    with open(app.config['TWITTER_AUTH_FILE_PATH'], 'r') as json_auth:
-        auth_dict = json.load(json_auth)
-
-    consumer_key = auth_dict['consumer_key']
-    consumer_secret = auth_dict['consumer_secret']
-    access_token = auth_dict['access_token_key']
-    access_token_secret = auth_dict['access_token_secret']
-
-    auth = tweepy.OAuthHandler(consumer_key, consumer_secret)
-    auth.set_access_token(access_token, access_token_secret)
-    # (consumer_key=auth['consumer_key'],
-    #                   consumer_secret=auth['consumer_secret'],
-    #                   access_token_key=auth['access_token_key'],
-    #                   access_token_secret=auth['access_token_secret'],
-    #                   application_only_auth=application_only,
-    #                   sleep_on_rate_limit=sleep_on_rate_limit)
-    api = tweepy.API(auth, wait_on_rate_limit=sleep_on_rate_limit)
-    return api
 
 
 # TODO: cache this per state
@@ -202,7 +180,7 @@ def get_subject_tweets(locations, hints, state):
     """
     Actually query Twitter/X for the tweets by subjects.
     """
-
+    client = twitter_client
     subjects =  get_subjects_to_search()
     max_terms = app.config["TWITTER_MAX_TERMS_PER_SEARCH"]
     search_strings = ['', ]
@@ -222,7 +200,6 @@ def get_subject_tweets(locations, hints, state):
             search_word_count += 1
             # subjects_str += quote_plus(' -'+' -'.join(APPLE_COMPUTER_RELATED_EXCLUDE).replace('\'','"'))
     
-    api = get_twitter_API()
     loc_subjects = {}
                     
     for loc in locations[:int(app.config['MAX_LOCATIONS'])]:
@@ -246,10 +223,10 @@ def get_subject_tweets(locations, hints, state):
                 # allowed_param=['q', 'lang', 'locale', 'since_id', 'geocode',
                 #    'max_id', 'until', 'result_type', 'count',
                 #    'include_entities']
-                results = api.search(qry)
+                response = client.search_recent_tweets(qry)
                 
-                # print "{},{} results:{}\n\n".format(loc['lat'],loc['lng'],results)
-                for tweet in results:
+                # print("{},{} results:{}\n\n".format(loc['lat'],loc['lng'],results))
+                for tweet in response.data:
                     try:
                         text = ' '+tweet.text.encode('ascii', 'ignore')+' '  # pre-/append a space for word searching
                         text = re.sub(r'https?:\/\/.*', '', text, flags=re.MULTILINE)
