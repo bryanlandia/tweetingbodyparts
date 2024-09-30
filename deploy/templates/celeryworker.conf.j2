@@ -1,7 +1,7 @@
 [program:celery]
 environment={{ settings_env_var }}
-command={{ apps_envs_dir }}/{{app_name }}/bin/celery -A tasks.celery worker --loglevel=DEBUG
-directory={{ app_dir }}/tweetmapper/src/tweetmapper
+command={{ apps_envs_dir }}/{{app_name }}/bin/celery -A tweetmapper.tasks worker --loglevel=DEBUG
+directory={{ app_dir }}/tweetmapper/src
 user=nobody
 numprocs=1
 stdout_logfile=/var/log/celery/{{ app_name }}_worker.log
