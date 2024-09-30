@@ -1,7 +1,8 @@
-import json
-from tweetmapper import app, redis_store, states_to_do
+# import json
+
 from flask import render_template
-from os import getenv
+
+from tweetmapper import app, redis_store, states_to_do
 
 
 @app.route("/")
@@ -14,7 +15,7 @@ def index():
 @app.route("/data")
 def get_latest_subject_data():
 	"""
-	return stored JSON of all locations and the fruits the people there are
+	return stored JSON of all locations and the body parts the people there are
 	tweeting about
 	"""
 	# start with stored dummy data
