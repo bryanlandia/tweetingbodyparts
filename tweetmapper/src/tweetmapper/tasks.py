@@ -53,10 +53,10 @@ def update_subject_counts():
 
     try:
         subject_tweets_json = get_subject_tweets(locations, hints, state)
-    except twitter.error.TwitterError, e:
+    except tweepy.error.TweepError, e:
         states_to_do.append(state)
         redis_store.set('states_to_do', ','.join(states_to_do))
-        return "Hit TwitterError {}.  Probably hit a RateLimit mid-run.  Wait and try again...".format(str(e))
+        return "Hit TweepError {}.  Probably hit a RateLimit mid-run.  Wait and try again...".format(str(e))
         
     # overwrite old json object properties with new, add other new
     from_store = json.loads(redis_store.get('subject_data'))
