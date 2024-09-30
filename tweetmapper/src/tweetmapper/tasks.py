@@ -4,8 +4,9 @@ import math
 import random
 import time
 
-from urllib import quote_plus
+from urllib.parse import quote_plus
 import json
+
 import fiona
 from shapely import geometry
 import tweepy
