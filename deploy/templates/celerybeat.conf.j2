@@ -1,6 +1,6 @@
 [program:celerybeat]
 environment={{ settings_env_var }}
-command={{ apps_envs_dir }}/{{app_name }}/bin/celery -A tweetmapper.tasks beat --loglevel=DEBUG
+command={{ apps_envs_dir }}/{{app_name }}/bin/celery -A tweetmapper.tasks.celery beat --loglevel=DEBUG
 directory={{ app_dir }}/tweetmapper/src
 user=www
 numprocs=1
