@@ -1,6 +1,6 @@
 CELERY = {
-    "broker_url": 'redis://localhost'
-    "result_backend": 'redis://localhost'
+    "broker_url": 'redis://localhost',
+    "result_backend": 'redis://localhost',
     "beat_schedule": {
         'update-subject-counts': {
         'task': 'tasks.update_subject_counts',
