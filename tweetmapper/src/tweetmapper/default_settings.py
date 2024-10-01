@@ -1,13 +1,12 @@
-from datetime import timedelta
-
-CELERY_BROKER_URL = 'redis://localhost'
-CELERY_RESULT_BACKEND = 'redis://localhost'
-REDIS_URL = "redis://localhost:6379/0"
-CELERYBEAT_SCHEDULE = {
-    'update-subject-counts': {
-    'task': 'tasks.update_subject_counts',
-    'schedule': timedelta(seconds=30),
-	},
+CELERY = {
+    "broker_url": 'redis://localhost'
+    "result_backend": 'redis://localhost'
+    "beat_schedule": {
+        'update-subject-counts': {
+        'task': 'tasks.update_subject_counts',
+        'schedule': 30,
+        },
+    }
 }
 MAX_LOCATIONS = 20
 MAX_TWEETS_PER_SEARCH = 35
