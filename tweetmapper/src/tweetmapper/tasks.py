@@ -17,7 +17,7 @@ from celery import Celery
 from tweetmapper import app, twitter_client, redis_store
 
 
-celery = Celery(app)
+celery = Celery(app, broker=app.config['CELERY_BROKER_URL'])
 logger = logging.getLogger(__name__)
 
 
