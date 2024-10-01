@@ -263,7 +263,7 @@ def get_subject_tweets(locations, hints, state):
 
                     except (ValueError, IndexError):
                         pass
-        except tweepy.error.TweepyException:
+        except tweepy.errors.TweepyException:
             raise 
 
         # pdb.set_trace()
