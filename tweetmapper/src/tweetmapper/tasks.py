@@ -142,7 +142,7 @@ def get_locations(datapath, state):
                 break
             rec = collection.next()
 
-        shape = geometry.asShape( rec['geometry'])
+        shape = geometry.shape( rec['geometry'])
         (minx, miny, maxx, maxy) = shape.bounds
         x = minx 
         y = miny
