@@ -20,7 +20,7 @@ from tweetmapper import app, twitter_client, redis_store
 celery = Celery(app)
 logger = logging.getLogger(__name__)
 
-class TwitterRateError(tweepy.error.TweepError):
+class TwitterRateError(tweepy.errors.TweepError):
 
     def __init__(self, status):
         self.reason = status
@@ -54,7 +54,7 @@ def update_subject_counts():
 
     try:
         subject_tweets_json = get_subject_tweets(locations, hints, state)
-    except tweepy.error.TweepError as e:
+    except tweepy.errors.TweepError as e:
         states_to_do.append(state)
         redis_store.set('states_to_do', ','.join(states_to_do))
         return "Hit TweepError {}.  Probably hit a RateLimit mid-run.  Wait and try again...".format(str(e))
