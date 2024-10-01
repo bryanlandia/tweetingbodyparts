@@ -15,5 +15,4 @@ TWITTER_MAX_TERMS_PER_SEARCH = 35
 TWEET_SEARCH_MILES_RADIUS = 30
 TWEET_SEARCH_THROTTLE_ASS = 0.3  # don't search for 'butt/ass' results sometimes
 
-
 DEPLOYMENT = "production"

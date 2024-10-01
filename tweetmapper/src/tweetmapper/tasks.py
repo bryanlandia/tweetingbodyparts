@@ -51,7 +51,7 @@ def update_subject_counts():
 
     datapath = app.config['STATES_SHAPE_FILE_PATH']
 
-    states_to_do = redis_store.get('states_to_do').split(',')
+    states_to_do = redis_store.get('states_to_do').decode('utf-8').split(',')
     state = states_to_do.pop()
     print(f"getting locations for state {state}")
 
@@ -68,7 +68,7 @@ def update_subject_counts():
         return "Hit TweepError {}.  Probably hit a RateLimit mid-run.  Wait and try again...".format(str(e))
         
     # overwrite old json object properties with new, add other new
-    from_store = json.loads(redis_store.get('subject_data'))
+    from_store = json.loads(redis_store.get('subject_data').decode('utf-8'))
     if from_store is None:
         redis_store.set('subject_data', {})
         from_store = {}
