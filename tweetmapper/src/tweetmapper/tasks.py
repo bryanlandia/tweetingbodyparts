@@ -12,7 +12,7 @@ from shapely import geometry
 import tweepy
 
 from celery.contrib import rdb as pdb
-from flask.ext.celery import Celery
+from celery import Celery
 
 from tweetmapper import app, twitter_client, redis_store
 
